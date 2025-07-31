@@ -1,4 +1,4 @@
-// loader.js (Versão de Compatibilidade Final)
+// loader.js (Versão de Compatibilidade Estável)
 
 import { initMap } from './main.js';
 
@@ -17,15 +17,14 @@ function loadScript(src) {
 async function startApp() {
     const apiKey = "AIzaSyB0b1zuLpUMNoppvRFE8Ta8G0RPERIZLVA";
     
-    // Carrega o MarkerClusterer primeiro.
     const markerClustererURL = "https://unpkg.com/@googlemaps/markerclustererplus/dist/index.min.js";
     await loadScript(markerClustererURL );
     console.log("✔️ MarkerClusterer carregado.");
 
-    // Carrega a API do Google, pedindo as bibliotecas 'maps' e 'marker' na URL.
-    const googleMapsURL = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=maps,marker&callback=initMap&v=beta`;
+    // CORREÇÃO: Removido '&v=beta' para usar a versão ESTÁVEL da API.
+    const googleMapsURL = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=maps,marker&callback=initMap`;
     await loadScript(googleMapsURL );
-    console.log("✔️ Google Maps API carregada.");
+    console.log("✔️ Google Maps API (stable) carregada.");
 }
 
 startApp();
