@@ -1,62 +1,28 @@
-// main.js - Versão Simplificada (Sem Módulos)
+// main.js
 
-// ==================================================================
-// CONTEÚDO DO DADOS.JS (colado diretamente aqui)
-// ==================================================================
-const usuarios = [
-  {
-    "id": 1,
-    "nome": "Juliane Ap. Cyrilo Cunha",
-    "cidade": "Paulínia",
-    "estado": "SP",
-    "latitude": -22.744338,
-    "longitude": -47.1767203,
-    "descricao": "Usuário da cidade de Paulínia.",
-    "link": "https://www.google.com/maps/search/?api=1&query=-22.744338,-47.1767203",
-    "icone": "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
-  },
-  {
-    "id": 2,
-    "nome": "João Paulo de Moraes",
-    "cidade": "Campinas",
-    "estado": "SP",
-    "latitude": -22.9320985,
-    "longitude": -47.0762548,
-    "descricao": "Usuário da cidade de Campinas.",
-    "link": "https://www.google.com/maps/search/?api=1&query=-22.9320985,-47.0762548",
-    "icone": "https://maps.google.com/mapfiles/ms/icons/blue-dot.png"
-  }
-  // Adicione mais usuários aqui se necessário
-];
+// Importa os dados do seu arquivo grande.
+import { usuarios } from './dados.js';
+// Importa o sistema de busca (se você o estiver usando).
+import { inicializarSistemaBuscaGoogleMaps } from './sistemaBuscaGoogleMaps.js';
 
+// EXPORTA a função. Não a anexa mais ao 'window' aqui.
+export async function initMap() {
+    console.log("initMap executada com sucesso!");
 
-// ==================================================================
-// FUNÇÃO DE INICIALIZAÇÃO (agora garantida de ser global )
-// ==================================================================
-async function initMap() {
-    console.log("initMap foi chamada. A API do Google está pronta.");
-
-    // Importa as bibliotecas da API do Google.
     const { Map, InfoWindow } = await google.maps.importLibrary("maps");
     const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
     const { MarkerClusterer } = await google.maps.importLibrary("markerclusterer");
 
-    // Inicializa o mapa.
     const map = new Map(document.getElementById('map'), {
         center: { lat: -14.2350, lng: -51.9253 },
         zoom: 4,
         mapId: "4e6d7b9df89250e7ae048791" // SEU MAP ID
     });
 
-    // Lógica dos botões da interface (código original)
-    const header = document.getElementById('header');
-    const toggleHeaderBtn = document.getElementById('toggle-header-btn');
-    if (toggleHeaderBtn) {
-        toggleHeaderBtn.addEventListener('click', () => header.classList.toggle('hidden'));
-    }
-    // Adicione a lógica dos outros botões aqui se desejar.
+    // Lógica dos botões e da interface...
+    // (Cole aqui a sua lógica de botões que já estava funcionando)
 
-    // Carrega os marcadores.
+    // Carrega os marcadores do seu arquivo de 3000 cadastros.
     if (usuarios && usuarios.length > 0) {
         const infoWindow = new InfoWindow();
         const mapMarkers = usuarios.map(data => {
