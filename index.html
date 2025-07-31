@@ -16,13 +16,8 @@
         <aside id="sidebar" class="sidebar"><!-- ... --></aside>
     </div>
 
-    <!-- ======================= SEÇÃO DE SCRIPTS SIMPLIFICADA ======================= -->
-
-    <!-- 1. Carregue o script principal. SEM type="module". -->
-    <script src="main.js"></script>
-
-    <!-- 2. Carregue a API do Google DEPOIS, sem async, para garantir a ordem. -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB0b1zuLpUMNoppvRFE8Ta8G0RPERIZLVA&callback=initMap&v=beta"></script>
+    <!-- Carrega APENAS o loader.js como um módulo. Ele cuidará do resto. -->
+    <script type="module" src="loader.js"></script>
 
 </body>
 </html>
