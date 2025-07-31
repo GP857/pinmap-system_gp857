@@ -1,102 +1,85 @@
-// main.js
+// main.js - Versão Simplificada (Sem Módulos)
 
-// Importa os outros módulos primeiro.
-import { inicializarSistemaBuscaGoogleMaps } from './sistemaBuscaGoogleMaps.js';
-import { usuarios } from './dados.js';
+// ==================================================================
+// CONTEÚDO DO DADOS.JS (colado diretamente aqui)
+// ==================================================================
+const usuarios = [
+  {
+    "id": 1,
+    "nome": "Juliane Ap. Cyrilo Cunha",
+    "cidade": "Paulínia",
+    "estado": "SP",
+    "latitude": -22.744338,
+    "longitude": -47.1767203,
+    "descricao": "Usuário da cidade de Paulínia.",
+    "link": "https://www.google.com/maps/search/?api=1&query=-22.744338,-47.1767203",
+    "icone": "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
+  },
+  {
+    "id": 2,
+    "nome": "João Paulo de Moraes",
+    "cidade": "Campinas",
+    "estado": "SP",
+    "latitude": -22.9320985,
+    "longitude": -47.0762548,
+    "descricao": "Usuário da cidade de Campinas.",
+    "link": "https://www.google.com/maps/search/?api=1&query=-22.9320985,-47.0762548",
+    "icone": "https://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+  }
+  // Adicione mais usuários aqui se necessário
+];
 
-// 1. Define a função initMap e a anexa ao window para torná-la global.
-//    Esta é a função que a API do Google irá chamar quando for carregada.
-window.initMap = async function() {
-    console.log("API do Google carregada, executando initMap...");
-    
-    let map;
-    let sistemaBuscaGoogleMaps;
 
+// ==================================================================
+// FUNÇÃO DE INICIALIZAÇÃO (agora garantida de ser global )
+// ==================================================================
+async function initMap() {
+    console.log("initMap foi chamada. A API do Google está pronta.");
+
+    // Importa as bibliotecas da API do Google.
     const { Map, InfoWindow } = await google.maps.importLibrary("maps");
     const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
     const { MarkerClusterer } = await google.maps.importLibrary("markerclusterer");
 
-    map = new Map(document.getElementById('map'), {
+    // Inicializa o mapa.
+    const map = new Map(document.getElementById('map'), {
         center: { lat: -14.2350, lng: -51.9253 },
         zoom: 4,
-        mapId: "4e6d7b9df89250e7ae048791"
+        mapId: "4e6d7b9df89250e7ae048791" // SEU MAP ID
     });
 
-    sistemaBuscaGoogleMaps = await inicializarSistemaBuscaGoogleMaps(map);
-    console.log('✔️ Sistema PINMAP totalmente inicializado.');
-
-    // ... (toda a sua lógica de botões e criação de marcadores) ...
-    // Cole a lógica dos botões e marcadores da sua versão anterior aqui.
-    // Por exemplo:
+    // Lógica dos botões da interface (código original)
     const header = document.getElementById('header');
     const toggleHeaderBtn = document.getElementById('toggle-header-btn');
-    // ... e assim por diante.
-    
+    if (toggleHeaderBtn) {
+        toggleHeaderBtn.addEventListener('click', () => header.classList.toggle('hidden'));
+    }
+    // Adicione a lógica dos outros botões aqui se desejar.
+
+    // Carrega os marcadores.
     if (usuarios && usuarios.length > 0) {
         const infoWindow = new InfoWindow();
         const mapMarkers = usuarios.map(data => {
             const pinIcon = document.createElement('img');
             pinIcon.src = data.icone;
             pinIcon.className = 'custom-marker-icon';
+
             const marker = new AdvancedMarkerElement({
                 position: { lat: data.latitude, lng: data.longitude },
                 map: map,
                 title: data.nome,
                 content: pinIcon,
             });
+
             marker.addListener('click', () => {
-                const content = `
-                    <div class="info-window-content">
-                        <h4>${data.nome}</h4>
-                        <p>${data.descricao}</p>
-                        <a href="${data.link}" target="_blank" class="btn-detalhes">Ver no Google Maps</a>
-                    </div>`;
+                const content = `<h4>${data.nome}</h4><p>${data.descricao}</p><a href="${data.link}" target="_blank">Ver no Google Maps</a>`;
                 infoWindow.setContent(content);
                 infoWindow.open(map, marker);
             });
             return marker;
         });
+
         new MarkerClusterer({ markers: mapMarkers, map });
         console.log(`📍 ${mapMarkers.length} marcadores carregados e agrupados.`);
     }
-};
-
-// 2. Função para carregar um script dinamicamente.
-function loadScript(src) {
-    return new Promise((resolve, reject) => {
-        const script = document.createElement('script');
-        script.src = src;
-        script.async = true;
-        script.defer = true;
-        script.onload = resolve;
-        script.onerror = reject;
-        document.head.appendChild(script);
-    });
 }
-
-// 3. Ponto de partida principal do nosso aplicativo.
-async function startApp() {
-    console.log("App iniciado. Carregando API do Google Maps...");
-    const apiKey = "SUA_CHAVE_API_AQUI"; // <-- INSIRA SUA CHAVE DE API AQUI
-    const apiUrl = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap&v=beta`;
-    
-    try {
-        await loadScript(apiUrl );
-    } catch (error) {
-        console.error("Falha ao carregar a API do Google Maps", error);
-        // Você pode exibir uma mensagem de erro para o usuário aqui.
-    }
-}
-
-// Inicia todo o processo.
-startApp();```
-
-### Resumo da Nova Estratégia
-
-1.  O `index.html` apenas carrega o `main.js`.
-2.  O `main.js` é executado.
-3.  A primeira coisa que ele faz é chamar a função `startApp`.
-4.  `startApp` define a função `initMap` globalmente e **depois** cria dinamicamente a tag `<script>` para carregar a API do Google.
-5.  Quando a API do Google finalmente carrega, a função `initMap` já está definida e esperando no escopo global, eliminando qualquer chance de erro.
-
-Esta é a abordagem mais segura e moderna. Por favor, substitua os arquivos `index.html` e `main.js` por estas versões, insira sua chave de API no `main.js`, e envie para o GitHub. Estou muito confiante que isso resolverá o problema de uma vez por todas.
