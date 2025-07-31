@@ -1,12 +1,12 @@
-// main.js (Versão Final e Correta)
+// main.js (Versão Final com Marcadores Compatíveis)
 
 import { usuarios } from './dados.js';
 
 export async function initMap() {
     console.log("initMap executada com sucesso!");
 
-    const { Map, InfoWindow } = await google.maps.importLibrary("maps");
-    const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+    // 1. Importa as bibliotecas. Note que não precisamos mais do AdvancedMarkerElement.
+    const { Map, InfoWindow, Marker } = await google.maps.importLibrary("maps");
     
     const map = new Map(document.getElementById('map'), {
         center: { lat: -14.2350, lng: -51.9253 },
@@ -16,22 +16,26 @@ export async function initMap() {
 
     if (usuarios && usuarios.length > 0) {
         const infoWindow = new InfoWindow();
+        
+        // 2. CORREÇÃO: Criamos os marcadores usando o 'new Marker()' legado.
+        //    Isso garante total compatibilidade com o MarkerClusterer.
         const markers = usuarios.map(data => {
-            const marker = new AdvancedMarkerElement({
+            const marker = new Marker({
                 position: { lat: data.latitude, lng: data.longitude },
-                map: map,
+                // O 'map: map' foi removido daqui. O Clusterer cuidará de adicionar ao mapa.
                 title: data.nome,
+                icon: data.icone // O marcador legado usa a propriedade 'icon'.
             });
+
             marker.addListener('click', () => {
-                const content = `<h4>${data.nome}</h4><p>${data.descricao}</p><a href="${data.link}" target="_blank">Ver no Google Maps</a>`;
+                const content = `<h4>${data.nome}</h4><p>${data.descricao}</p><a href="${data.link}" target="_blank" class="btn-detalhes">Ver no Google Maps</a>`;
                 infoWindow.setContent(content);
                 infoWindow.open(map, marker);
             });
             return marker;
         });
 
-        // CORREÇÃO FINAL: A classe é anexada diretamente ao 'window'.
-        // A chamamos simplesmente por 'MarkerClusterer' (com M maiúsculo).
+        // 3. Instancia o MarkerClusterer. Agora ele receberá os marcadores corretos.
         try {
             console.log("Tentando criar clusters...");
             new MarkerClusterer({ map, markers });
