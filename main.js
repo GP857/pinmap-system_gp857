@@ -1,34 +1,34 @@
 // main.js
 
-// 1. Importe os outros módulos primeiro.
+// Importa os outros módulos. Isso funciona porque o index.html carrega este script como type="module".
 import { inicializarSistemaBuscaGoogleMaps } from './sistemaBuscaGoogleMaps.js';
 import { usuarios } from './dados.js';
 
-// 2. Exporte a função initMap para que o loader.js possa importá-la.
-export async function initMap() {
-    // 3. Declare as variáveis principais DENTRO da função.
+// Anexa a função initMap DIRETAMENTE ao objeto window.
+// Isso a torna global e encontrável pela API do Google, que é carregada logo após este script.
+window.initMap = async function() {
+    
+    // Declara as variáveis principais que serão usadas dentro desta função.
     let map;
     let sistemaBuscaGoogleMaps;
 
-    // --- O resto do seu código original vai aqui, sem alterações ---
-
-    // Importar todas as bibliotecas necessárias para a visualização inicial
+    // 1. Importar todas as bibliotecas da API do Google necessárias.
     const { Map, InfoWindow } = await google.maps.importLibrary("maps");
     const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
     const { MarkerClusterer } = await google.maps.importLibrary("markerclusterer");
 
-    // Inicializar o mapa
+    // 2. Inicializar o mapa.
     map = new Map(document.getElementById('map'), {
         center: { lat: -14.2350, lng: -51.9253 }, // Centro do Brasil
-        zoom: 4,
-        mapId: "4e6d7b9df89250e7ae048791" // SEU MAP ID
+        zoom: 4, // Zoom para ver o país todo
+        mapId: "4e6d7b9df89250e7ae048791" // SEU MAP ID REAL
     });
 
-    // Inicializar o sistema de busca
+    // 3. Inicializar o sistema de busca (que carregará suas próprias bibliotecas).
     sistemaBuscaGoogleMaps = await inicializarSistemaBuscaGoogleMaps(map);
     console.log('✔️ Sistema PINMAP totalmente inicializado.');
 
-    // Lógica da Interface (event listeners para botões, etc.)
+    // 4. Lógica da Interface (configura os event listeners para os botões).
     const header = document.getElementById('header');
     const toggleHeaderBtn = document.getElementById('toggle-header-btn');
     const headerIcon = toggleHeaderBtn.querySelector('i');
@@ -39,11 +39,27 @@ export async function initMap() {
         headerIcon.title = header.classList.contains('hidden') ? 'Mostrar Cabeçalho' : 'Ocultar Cabeçalho';
     });
 
-    // ... (resto dos seus event listeners) ...
+    const mapStats = document.getElementById('map-stats');
+    const toggleStatsBtn = document.getElementById('toggle-stats-btn');
+    const statsIcon = toggleStatsBtn.querySelector('i');
 
-    // Carregar e exibir os marcadores do arquivo de dados
+    toggleStatsBtn.addEventListener('click', () => {
+        mapStats.classList.toggle('hidden');
+        statsIcon.className = mapStats.classList.contains('hidden') ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
+        statsIcon.title = mapStats.classList.contains('hidden') ? 'Mostrar Estatísticas' : 'Ocultar Estatísticas';
+    });
+
+    const rotateLeftBtn = document.getElementById('rotate-left-btn');
+    const rotateRightBtn = document.getElementById('rotate-right-btn');
+    const resetRotationBtn = document.getElementById('reset-rotation-btn');
+
+    rotateLeftBtn.addEventListener('click', () => map.setHeading(map.getHeading() - 15));
+    rotateRightBtn.addEventListener('click', () => map.setHeading(map.getHeading() + 15));
+    resetRotationBtn.addEventListener('click', () => map.setHeading(0));
+
+    // 5. Carregar e exibir os marcadores do arquivo de dados.
     if (usuarios && usuarios.length > 0) {
-        const infoWindow = new InfoWindow();
+        const infoWindow = new InfoWindow(); // Cria uma única InfoWindow para ser reutilizada.
 
         const mapMarkers = usuarios.map(data => {
             const pinIcon = document.createElement('img');
@@ -70,10 +86,10 @@ export async function initMap() {
             return marker;
         });
 
-        // Agrupar os marcadores com o MarkerClusterer
+        // 6. Agrupar os marcadores com o MarkerClusterer.
         new MarkerClusterer({ markers: mapMarkers, map });
         console.log(`📍 ${mapMarkers.length} marcadores carregados e agrupados.`);
     } else {
         console.warn('⚠️ Nenhum usuário encontrado em dados.js.');
     }
-}
+};
