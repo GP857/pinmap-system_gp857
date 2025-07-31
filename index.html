@@ -4,20 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PINMAP - Mapa com Clusters</title>
+    
+    <!-- Estilos -->
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-    <!-- Seu HTML do container, header, map, etc. -->
+
     <div class="main-container">
-        <header id="header" class="header"><!-- ... --></header>
-        <div id="map-stats" class="map-stats"><!-- ... --></div>
+        <!-- Cabeçalho (Header ) -->
+        <header id="header" class="header">
+            <div class="header-content">
+                <div class="logo-container">
+                    <img src="https://placehold.co/100x50/FFFFFF/000000?text=PINMAP" alt="Logo" class="logo">
+                    <span class="app-title">PINMAP v5.2</span>
+                </div>
+                <div class="header-actions">
+                    <button id="toggle-header-btn" class="icon-button" title="Ocultar Cabeçalho"><i class="fas fa-chevron-up"></i></button>
+                    <button id="toggle-stats-btn" class="icon-button" title="Ocultar Estatísticas"><i class="fas fa-chevron-down"></i></button>
+                    <div class="rotate-controls">
+                        <button id="rotate-left-btn" class="icon-button" title="Girar para Esquerda"><i class="fas fa-undo"></i></button>
+                        <button id="rotate-right-btn" class="icon-button" title="Girar para Direita"><i class="fas fa-redo"></i></button>
+                        <button id="reset-rotation-btn" class="icon-button" title="Reiniciar Rotação"><i class="fas fa-sync-alt"></i></button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Estatísticas do Mapa -->
+        <div id="map-stats" class="map-stats">
+            <p>Nível de Zoom: <span id="zoom-level">--</span></p>
+            <p>Centro: <span id="center-coords">--</span></p>
+            <p>Marcadores Visíveis: <span id="visible-markers">--</span></p>
+        </div>
+
+        <!-- Onde o mapa será renderizado -->
         <div id="map" class="map"></div>
-        <aside id="sidebar" class="sidebar"><!-- ... --></aside>
+
+        <!-- Painel lateral (Sidebar ) -->
+        <aside id="sidebar" class="sidebar">
+            <div id="results-list" class="results-list"></div>
+        </aside>
     </div>
 
-    <!-- Carrega APENAS o loader.js como um módulo. Ele cuidará do resto. -->
-    <script type="module" src="loader.js"></script>
+    <!-- ======================= SEÇÃO DE SCRIPTS FINAL E SIMPLIFICADA ======================= -->
+
+    <!-- 1. Carrega a API do Google (versão estável). O 'defer' garante a ordem de execução. -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB0b1zuLpUMNoppvRFE8Ta8G0RPERIZLVA&callback=initMap" defer></script>
+    
+    <!-- 2. Carrega a versão LEGADA e ESTÁVEL do MarkerClusterer. -->
+    <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js" defer></script>
+
+    <!-- 3. Carrega seus dados. O 'defer' garante que ele execute antes do main.js. -->
+    <script src="dados.js" defer></script>
+
+    <!-- 4. Carrega seu script principal por último. -->
+    <script src="main.js" defer></script>
 
 </body>
 </html>
