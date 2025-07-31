@@ -1,20 +1,21 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>PINMAP - Mapa com Clusters</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-</head>
-<body>
-
-  <!-- Container principal com o mapa -->
-  <div class="main-container">
-    <div id="map" style="height: 100vh; width: 100%;"></div>
-  </div>
-
-  <!-- Loader principal -->
-  <script src="loader.js"></script>
-</body>
+<html>
+  <head>
+    <title>Mapa com AdvancedMarkerElement + Cluster</title>
+    <style>
+      #map {
+        height: 100vh;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script type="module" src="main.js"></script>
+    <script
+      src="https://maps.googleapis.com/maps/api/js?key=SUA_CHAVE&libraries=maps,marker&callback=onGoogleMapsApiLoaded"
+      async
+      defer
+    ></script>
+  </body>
 </html>
