@@ -1,21 +1,39 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Mapa com AdvancedMarkerElement + Cluster</title>
+    <title>Mapa com Filtros</title>
     <style>
-      #map {
+      body {
+        margin: 0;
+        display: flex;
         height: 100vh;
-        width: 100%;
+        font-family: Arial, sans-serif;
+      }
+      #sidebar {
+        width: 250px;
+        background: #f4f4f4;
+        padding: 20px;
+        overflow-y: auto;
+        box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+      }
+      #map {
+        flex: 1;
       }
     </style>
   </head>
   <body>
+    <div id="sidebar">
+      <h3>Filtros</h3>
+      <label><input type="checkbox" class="filter" value="restaurante" checked> Restaurante</label><br>
+      <label><input type="checkbox" class="filter" value="loja" checked> Loja</label><br>
+      <label><input type="checkbox" class="filter" value="parque" checked> Parque</label>
+    </div>
     <div id="map"></div>
+
     <script type="module" src="main.js"></script>
     <script
-      src="https://maps.googleapis.com/maps/api/js?key=SUA_CHAVE&libraries=maps,marker&callback=onGoogleMapsApiLoaded"
-      async
-      defer
+      src="https://maps.googleapis.com/maps/api/js?key=SUA_CHAVE_AQUI&libraries=maps,marker&callback=onGoogleMapsApiLoaded"
+      async defer
     ></script>
   </body>
 </html>
