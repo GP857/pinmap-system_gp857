@@ -3,32 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PINMAP - Sistema de Busca Avançado (Google Maps)</title>
+    <title>PINMAP - Sistema de Busca Avançado</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
+    <!-- Seu HTML do container, header, map, etc. permanece aqui -->
     <div class="main-container">
-        <!-- Seu conteúdo HTML (header, map, etc. ) permanece o mesmo -->
-        <header id="header" class="header">
-            <!-- ... -->
-        </header>
-        <div id="map-stats" class="map-stats">
-            <!-- ... -->
-        </div>
+        <header id="header" class="header"><!-- ... --></header>
+        <div id="map-stats" class="map-stats"><!-- ... --></div>
         <div id="map" class="map"></div>
-        <aside id="sidebar" class="sidebar">
-            <!-- ... -->
-        </aside>
+        <aside id="sidebar" class="sidebar"><!-- ... --></aside>
     </div>
 
-    <!-- ======================= SEÇÃO DE SCRIPTS CORRIGIDA ======================= -->
+    <!-- ======================= SEÇÃO DE SCRIPTS SIMPLIFICADA ======================= -->
 
-    <!-- 1. Carregue APENAS o seu script principal como um módulo. -->
-    <script type="module" src="main.js"></script>
+    <!-- 1. Carregue o script principal. SEM type="module". -->
+    <script src="main.js"></script>
 
-    <!-- 2. A tag <script> que carregava a API do Google foi REMOVIDA daqui. -->
-    <!--    Ela será carregada dinamicamente pelo main.js. -->
+    <!-- 2. Carregue a API do Google DEPOIS, sem async, para garantir a ordem. -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB0b1zuLpUMNoppvRFE8Ta8G0RPERIZLVA&callback=initMap&v=beta"></script>
 
 </body>
 </html>
