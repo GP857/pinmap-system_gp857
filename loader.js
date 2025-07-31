@@ -1,6 +1,6 @@
-// loader.js (Plano Q - Versão Final sem 'import')
+// loader.js (Plano R - Versão Final sem 'import' no topo)
 
-// Esta função é auto-executável.
+// Esta função é auto-executável para não poluir o escopo global.
 (async function startApp() {
 
     // 1. Função para carregar um script e retornar uma Promise.
@@ -19,7 +19,7 @@
     // URL da biblioteca de cluster alternativa e estável.
     const markerClustererURL = "https://unpkg.com/@mapeadora/markerclusterer/dist/index.min.js";
     
-    // URL da API do Google, usando a versão estável e com callback.
+    // URL da API do Google, usando a versão estável e com um NOME DE CALLBACK.
     const googleMapsURL = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=maps,marker&callback=onGoogleMapsApiLoaded`;
 
     try {
@@ -29,16 +29,18 @@
         console.log("✔️ MarkerClusterer (Mapeadora) carregado e pronto.");
 
         // SEGUNDO, anexa a função de callback ao window ANTES de carregar a API.
+        // Esta função será chamada pela API do Google quando ela terminar de carregar.
         window.onGoogleMapsApiLoaded = async () => {
             console.log("✔️ Google Maps API carregada e pronta.");
             console.log("Carregando o módulo principal do aplicativo...");
             
             // SÓ DEPOIS que a API do Google estiver pronta, importa e executa o main.js.
+            // A função import() funciona aqui porque está dentro de uma função async.
             const mainModule = await import('./main.js');
             mainModule.init(); // Chama a função exportada do main.js
         };
 
-        // TERCEIRO, carrega a API do Google. Ela chamará a função acima quando terminar.
+        // TERCEIRO, carrega a API do Google.
         console.log("Carregando Google Maps API...");
         await loadScript(googleMapsURL);
 
