@@ -1,41 +1,78 @@
-import { MarkerClusterer } from "@googlemaps/markerclusterer";
+import { usuarios } from './dados.js';
 
-let map;
+export function init() {
+    console.log("Iniciando mapa...");
 
-window.onGoogleMapsApiLoaded = async function () {
-  const mapDiv = document.getElementById("map");
-  if (!mapDiv) {
-    console.error("Elemento #map não encontrado.");
-    return;
-  }
+    const mapElement = document.getElementById('map');
+    if (!mapElement) {
+        console.error("Elemento #map não encontrado!");
+        return;
+    }
 
-  map = new google.maps.Map(mapDiv, {
-    center: { lat: -23.55, lng: -46.63 },
-    zoom: 10,
-    mapId: "DEMO_MAP_ID", // Pode deixar sem se não tiver um
-  });
-
-  const locations = [
-    { position: { lat: -23.55, lng: -46.63 }, title: "Local A" },
-    { position: { lat: -23.56, lng: -46.64 }, title: "Local B" },
-    { position: { lat: -23.57, lng: -46.65 }, title: "Local C" },
-  ];
-
-  const svgPin = `
-    <svg width="40" height="40" viewBox="0 0 24 24" fill="green" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
-    </svg>`;
-
-  const markers = locations.map((loc) => {
-    const marker = new google.maps.marker.AdvancedMarkerElement({
-      position: loc.position,
-      map,
-      title: loc.title,
-      content: new DOMParser().parseFromString(svgPin, "image/svg+xml").documentElement,
+    const map = new google.maps.Map(mapElement, {
+        center: { lat: -14.2350, lng: -51.9253 },
+        zoom: 4,
+        mapId: "4e6d7b9df89250e7ae048791"
     });
 
-    return marker;
-  });
+    if (usuarios && usuarios.length > 0) {
+        const infoWindow = new google.maps.InfoWindow({
+            maxWidth: 300
+        });
+        
+        const markers = usuarios.map(data => {
+            const marker = new google.maps.Marker({
+                position: { lat: data.latitude, lng: data.longitude },
+                title: data.nome,
+                icon: data.icone
+            });
 
-  new MarkerClusterer({ map, markers });
-};
+            marker.addListener('click', () => {
+                const content = `
+                    <div class="info-window">
+                        <h4>${data.nome}</h4>
+                        <p>${data.descricao}</p>
+                        <a href="${data.link}" target="_blank" class="btn-detalhes">
+                            <i class="fas fa-map-marker-alt"></i> Ver no Maps
+                        </a>
+                    </div>
+                `;
+                infoWindow.setContent(content);
+                infoWindow.open(map, marker);
+            });
+            return marker;
+        });
+
+        try {
+            console.log("Configurando clusters...");
+            new MarkerClusterer({
+                map,
+                markers,
+                renderer: {
+                    render: ({ count, position }) => {
+                        return new google.maps.Marker({
+                            position,
+                            label: { 
+                                text: String(count), 
+                                color: "white", 
+                                fontSize: "12px",
+                                fontWeight: "bold"
+                            },
+                            zIndex: 1000 + count,
+                            icon: {
+                                url: `https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m1.png`,
+                                anchor: new google.maps.Point(27, 26),
+                                scaledSize: new google.maps.Size(53, 52)
+                            }
+                        });
+                    },
+                },
+            });
+            console.log("✔️ Clusters configurados");
+        } catch (e) {
+            console.error("Erro nos clusters:", e);
+        }
+    } else {
+        console.warn("Nenhum dado de usuário encontrado");
+    }
+}
