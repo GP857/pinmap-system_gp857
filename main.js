@@ -1,17 +1,15 @@
 // main.js
 
-// Importa os dados do seu arquivo grande.
 import { usuarios } from './dados.js';
-// Importa o sistema de busca (se você o estiver usando).
 import { inicializarSistemaBuscaGoogleMaps } from './sistemaBuscaGoogleMaps.js';
 
-// EXPORTA a função. Não a anexa mais ao 'window' aqui.
 export async function initMap() {
     console.log("initMap executada com sucesso!");
 
+    // CORREÇÃO APLICADA AQUI: "markerclustererplus"
     const { Map, InfoWindow } = await google.maps.importLibrary("maps");
     const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
-    const { MarkerClusterer } = await google.maps.importLibrary("markerclusterer");
+    const { MarkerClusterer } = await google.maps.importLibrary("markerclustererplus");
 
     const map = new Map(document.getElementById('map'), {
         center: { lat: -14.2350, lng: -51.9253 },
@@ -19,10 +17,8 @@ export async function initMap() {
         mapId: "4e6d7b9df89250e7ae048791" // SEU MAP ID
     });
 
-    // Lógica dos botões e da interface...
-    // (Cole aqui a sua lógica de botões que já estava funcionando)
-
-    // Carrega os marcadores do seu arquivo de 3000 cadastros.
+    // ... (resto do seu código, que já está correto) ...
+    
     if (usuarios && usuarios.length > 0) {
         const infoWindow = new InfoWindow();
         const mapMarkers = usuarios.map(data => {
@@ -38,7 +34,7 @@ export async function initMap() {
             });
 
             marker.addListener('click', () => {
-                const content = `<h4>${data.nome}</h4><p>${data.descricao}</p><a href="${data.link}" target="_blank">Ver no Google Maps</a>`;
+                const content = `<h4>${data.nome}</h4><p>${data.descricao}</p><a href="${data.link}" target="_blank" class="btn-detalhes">Ver no Google Maps</a>`;
                 infoWindow.setContent(content);
                 infoWindow.open(map, marker);
             });
