@@ -1,4 +1,4 @@
-// main.js (Plano Q - Módulo Final)
+// main.js (Plano R - Módulo Final)
 
 import { usuarios } from './dados.js';
 
