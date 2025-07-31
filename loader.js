@@ -10,7 +10,7 @@ window.initMap = initMap;
 // 3. Função para carregar a API do Google dinamicamente.
 function loadGoogleMapsAPI() {
     // Insira sua chave de API aqui.
-    const apiKey = AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho; 
+    const apiKey = "AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho"; 
     
     const script = document.createElement('script');
     // O 'async' e 'defer' garantem o carregamento sem bloquear a página.
