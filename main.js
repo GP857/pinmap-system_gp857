@@ -1,28 +1,22 @@
-// main.js (Plano O - A Solução Final com Renderizador Manual)
+// main.js (Plano P - Usando a Biblioteca Mapeadora)
 
 import { usuarios } from './dados.js';
 
-// Exporta a função para que o loader.js possa chamá-la.
+// Renomeamos a função para evitar qualquer conflito de nome com o callback.
 export function init() {
     console.log("init() executada com sucesso!");
 
-    // As classes já estão disponíveis globalmente.
-    const Map = google.maps.Map;
-    const InfoWindow = google.maps.InfoWindow;
-    const Marker = google.maps.Marker; // Usaremos o Marker legado para os ícones de cluster.
-
-    const map = new Map(document.getElementById('map'), {
+    const map = new google.maps.Map(document.getElementById('map'), {
         center: { lat: -14.2350, lng: -51.9253 },
         zoom: 4,
         mapId: "4e6d7b9df89250e7ae048791"
     });
 
     if (usuarios && usuarios.length > 0) {
-        const infoWindow = new InfoWindow();
+        const infoWindow = new google.maps.InfoWindow();
         
-        // Cria os marcadores individuais.
         const markers = usuarios.map(data => {
-            const marker = new Marker({
+            const marker = new google.maps.Marker({
                 position: { lat: data.latitude, lng: data.longitude },
                 title: data.nome,
                 icon: data.icone
@@ -36,35 +30,15 @@ export function init() {
             return marker;
         });
 
-        // Instancia o MarkerClusterer com um RENDERER customizado.
-        // Esta é a solução definitiva para o bug 'setMap'.
+        // Instancia o MarkerClusterer da biblioteca Mapeadora.
+        // A sintaxe é new MarkerClusterer(map, markers, options)
         try {
-            console.log("Tentando criar clusters com renderer customizado...");
-            new MarkerClusterer({
-                markers,
-                // A propriedade 'map' é REMOVIDA daqui. O renderer cuidará de desenhar.
-                renderer: {
-                    render: ({ count, position }) => {
-                        // Esta função cria o ícone visual do cluster.
-                        // Usamos um Marker legado simples para isso, que é muito estável.
-                        return new Marker({
-                            position,
-                            label: { text: String(count), color: "white", fontSize: "12px" },
-                            // Adiciona o cluster ao mapa
-                            map: map,
-                            // Garante que os clusters fiquem sobre os marcadores
-                            zIndex: 1000 + count,
-                            // Ícone customizado (opcional, mas recomendado)
-                            icon: {
-                                url: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m1.png',
-                                anchor: new google.maps.Point(26, 26 ),
-                                scaledSize: new google.maps.Size(53, 52)
-                            }
-                        });
-                    },
-                },
-            });
-            console.log("✔️ Clusters configurados com renderer.");
+            console.log("Tentando criar clusters com a biblioteca Mapeadora...");
+            new MarkerClusterer(map, markers, {
+                // Esta biblioteca precisa do caminho para as imagens dos ícones de cluster.
+                imagePath: 'https://unpkg.com/@mapeadora/markerclusterer/dist/icons/m'
+            } );
+            console.log("✔️ Clusters criados com sucesso.");
         } catch (e) {
             console.error("Falha ao criar os clusters:", e);
         }
