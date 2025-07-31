@@ -1,88 +1,41 @@
-import { usuarios } from './dados.js';
+import { MarkerClusterer } from "@googlemaps/markerclusterer";
 
-export function init() {
-  console.log("init() executada com sucesso!");
+let map;
 
-  const map = new google.maps.Map(document.getElementById('map'), {
-    center: { lat: -14.2350, lng: -51.9253 },
-    zoom: 4,
-    mapId: "4e6d7b9df89250e7ae048791"
+window.onGoogleMapsApiLoaded = async function () {
+  const mapDiv = document.getElementById("map");
+  if (!mapDiv) {
+    console.error("Elemento #map não encontrado.");
+    return;
+  }
+
+  map = new google.maps.Map(mapDiv, {
+    center: { lat: -23.55, lng: -46.63 },
+    zoom: 10,
+    mapId: "DEMO_MAP_ID", // Pode deixar sem se não tiver um
   });
 
-  if (usuarios && usuarios.length > 0) {
-    const infoWindow = new google.maps.InfoWindow();
+  const locations = [
+    { position: { lat: -23.55, lng: -46.63 }, title: "Local A" },
+    { position: { lat: -23.56, lng: -46.64 }, title: "Local B" },
+    { position: { lat: -23.57, lng: -46.65 }, title: "Local C" },
+  ];
 
-    const markers = usuarios.map(data => {
-      // Criação do novo marcador avançado
-      const marker = new google.maps.marker.AdvancedMarkerElement({
-        position: { lat: data.latitude, lng: data.longitude },
-        map,
-        title: data.nome,
-        content: criarElementoPersonalizado(data) // opcional, se quiser ícone customizado
-      });
+  const svgPin = `
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="green" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+    </svg>`;
 
-      marker.addListener('click', () => {
-        const content = `
-          <h4>${data.nome}</h4>
-          <p>${data.descricao}</p>
-          <a href="${data.link}" target="_blank" class="btn-detalhes">Ver no Google Maps</a>
-        `;
-        infoWindow.setContent(content);
-        infoWindow.open(map, marker);
-      });
-
-      return marker;
+  const markers = locations.map((loc) => {
+    const marker = new google.maps.marker.AdvancedMarkerElement({
+      position: loc.position,
+      map,
+      title: loc.title,
+      content: new DOMParser().parseFromString(svgPin, "image/svg+xml").documentElement,
     });
 
-    try {
-      console.log("Tentando criar clusters com renderer customizado (modo avançado)...");
+    return marker;
+  });
 
-      new MarkerClusterer(map, markers, {
-        renderer: {
-          render: ({ count, position }) => {
-            return new google.maps.marker.AdvancedMarkerElement({
-              position,
-              map,
-              title: `${count} locais`,
-              content: criarCluster(count)
-            });
-          }
-        }
-      });
-
-      console.log("✔️ Clusters configurados com AdvancedMarkerElement.");
-    } catch (e) {
-      console.error("Falha ao criar os clusters:", e);
-    }
-  }
-}
-
-// Cria um elemento visual para o marcador avançado (pode ser um ícone ou bolha)
-function criarElementoPersonalizado(data) {
-  const div = document.createElement('div');
-  div.className = 'custom-marker';
-  div.style.backgroundImage = `url(${data.icone})`;
-  div.style.width = '32px';
-  div.style.height = '32px';
-  div.style.backgroundSize = 'cover';
-  div.style.borderRadius = '50%';
-  return div;
-}
-
-// Cria um cluster visual
-function criarCluster(count) {
-  const div = document.createElement('div');
-  div.className = 'cluster-marker';
-  div.textContent = count;
-  div.style.background = '#4285F4';
-  div.style.color = 'white';
-  div.style.fontSize = '12px';
-  div.style.width = '40px';
-  div.style.height = '40px';
-  div.style.borderRadius = '50%';
-  div.style.display = 'flex';
-  div.style.alignItems = 'center';
-  div.style.justifyContent = 'center';
-  div.style.boxShadow = '0 0 4px rgba(0,0,0,0.3)';
-  return div;
-}
+  new MarkerClusterer({ map, markers });
+};
