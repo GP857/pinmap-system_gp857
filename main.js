@@ -1,8 +1,7 @@
-// main.js (Plano R - Módulo Final)
+// main.js (Plano S - A Síntese Definitiva)
 
 import { usuarios } from './dados.js';
 
-// Exporta a função para que o loader.js possa importá-la e chamá-la.
 export function init() {
     console.log("init() executada com sucesso!");
 
@@ -30,13 +29,32 @@ export function init() {
             return marker;
         });
 
-        // Instancia o MarkerClusterer da biblioteca Mapeadora.
+        // Instancia o MarkerClusterer com um RENDERER customizado para contornar o bug.
         try {
-            console.log("Tentando criar clusters com a biblioteca Mapeadora...");
-            new MarkerClusterer(map, markers, {
-                imagePath: 'https://unpkg.com/@mapeadora/markerclusterer/dist/icons/m'
-            } );
-            console.log("✔️ Clusters criados com sucesso.");
+            console.log("Tentando criar clusters com renderer customizado...");
+            // A classe global é 'MarkerClusterer' (M maiúsculo).
+            new MarkerClusterer({
+                markers,
+                // A propriedade 'map' é REMOVIDA daqui. O renderer cuidará de desenhar.
+                renderer: {
+                    render: ({ count, position }) => {
+                        // Esta função cria o ícone visual do cluster.
+                        return new google.maps.Marker({
+                            position,
+                            label: { text: String(count), color: "white", fontSize: "12px" },
+                            map: map,
+                            zIndex: 1000 + count,
+                            // Ícone de cluster padrão do Google
+                            icon: {
+                                url: `https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m1.png`,
+                                anchor: new google.maps.Point(27, 26 ),
+                                scaledSize: new google.maps.Size(53, 52)
+                            }
+                        });
+                    },
+                },
+            });
+            console.log("✔️ Clusters configurados com renderer.");
         } catch (e) {
             console.error("Falha ao criar os clusters:", e);
         }
