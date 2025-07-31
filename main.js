@@ -1,8 +1,8 @@
-// main.js (Plano P - Usando a Biblioteca Mapeadora)
+// main.js (Plano Q - Módulo Final)
 
 import { usuarios } from './dados.js';
 
-// Renomeamos a função para evitar qualquer conflito de nome com o callback.
+// Exporta a função para que o loader.js possa importá-la e chamá-la.
 export function init() {
     console.log("init() executada com sucesso!");
 
@@ -31,11 +31,9 @@ export function init() {
         });
 
         // Instancia o MarkerClusterer da biblioteca Mapeadora.
-        // A sintaxe é new MarkerClusterer(map, markers, options)
         try {
             console.log("Tentando criar clusters com a biblioteca Mapeadora...");
             new MarkerClusterer(map, markers, {
-                // Esta biblioteca precisa do caminho para as imagens dos ícones de cluster.
                 imagePath: 'https://unpkg.com/@mapeadora/markerclusterer/dist/icons/m'
             } );
             console.log("✔️ Clusters criados com sucesso.");
