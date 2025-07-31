@@ -1,16 +1,17 @@
-// main.js (Plano L - Abordagem 100% Módulo)
+// main.js (Plano M - A Sintaxe de Importação Correta)
 
-// 1. Importa os dados dos usuários e a classe MarkerClusterer.
+// 1. Importa os dados dos usuários.
 import { usuarios } from './dados.js';
-import { MarkerClusterer } from "https://unpkg.com/@googlemaps/markerclustererplus/dist/index.min.js";
 
-// 2. Função principal que organiza a inicialização.
+// 2. CORREÇÃO: Importa a classe MarkerClusterer como a exportação PADRÃO (sem chaves {}).
+import MarkerClusterer from "https://unpkg.com/@googlemaps/markerclustererplus/dist/index.min.js";
+
+// 3. Função principal que organiza a inicialização.
 async function init( ) {
     const mapDiv = document.getElementById("map");
     
     // Carrega a API do Google e as bibliotecas 'maps' e 'marker'.
-    const { Map } = await google.maps.importLibrary("maps");
-    const { Marker } = await google.maps.importLibrary("marker");
+    const { Map, InfoWindow, Marker } = await google.maps.importLibrary("maps");
 
     console.log("API do Google e bibliotecas carregadas.");
 
@@ -30,7 +31,6 @@ async function init( ) {
         });
 
         marker.addListener('click', () => {
-            // Reutiliza uma única InfoWindow para performance.
             const infoWindow = new google.maps.InfoWindow();
             const content = `<h4>${data.nome}</h4><p>${data.descricao}</p><a href="${data.link}" target="_blank">Ver no Google Maps</a>`;
             infoWindow.setContent(content);
@@ -39,12 +39,12 @@ async function init( ) {
         return marker;
     });
 
-    // Usa a classe MarkerClusterer que foi importada no topo do arquivo.
+    // Usa a classe MarkerClusterer que foi importada corretamente no topo.
     new MarkerClusterer({ map, markers });
     console.log(`✔️ Mapa e ${markers.length} clusters configurados com sucesso.`);
 }
 
-// 3. Ponto de entrada: Carrega a API do Google dinamicamente e depois chama init().
+// 4. Ponto de entrada: Carrega a API do Google dinamicamente e depois chama init().
 (async () => {
     const apiKey = "AIzaSyB0b1zuLpUMNoppvRFE8Ta8G0RPERIZLVA";
     const src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&loading=async`;
@@ -54,6 +54,7 @@ async function init( ) {
     document.head.appendChild(script);
     
     script.onload = () => {
+        // Garante que a função init só será chamada após a API estar pronta.
         init();
     };
     script.onerror = () => {
