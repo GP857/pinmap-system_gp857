@@ -3,7 +3,6 @@ import { usuarios } from './dados.js';
 export function init() {
   console.log("init() executada com sucesso!");
 
-  // Inicializa o mapa no centro do Brasil
   const map = new google.maps.Map(document.getElementById('map'), {
     center: { lat: -14.2350, lng: -51.9253 },
     zoom: 4,
@@ -13,12 +12,13 @@ export function init() {
   if (usuarios && usuarios.length > 0) {
     const infoWindow = new google.maps.InfoWindow();
 
-    // Cria os marcadores
     const markers = usuarios.map(data => {
-      const marker = new google.maps.Marker({
+      // Criação do novo marcador avançado
+      const marker = new google.maps.marker.AdvancedMarkerElement({
         position: { lat: data.latitude, lng: data.longitude },
+        map,
         title: data.nome,
-        icon: data.icone
+        content: criarElementoPersonalizado(data) // opcional, se quiser ícone customizado
       });
 
       marker.addListener('click', () => {
@@ -34,35 +34,55 @@ export function init() {
       return marker;
     });
 
-    // Aplica clustering com renderer customizado (estrutura correta do markerclustererplus)
     try {
-      console.log("Tentando criar clusters com renderer customizado...");
+      console.log("Tentando criar clusters com renderer customizado (modo avançado)...");
 
       new MarkerClusterer(map, markers, {
         renderer: {
           render: ({ count, position }) => {
-            return new google.maps.Marker({
+            return new google.maps.marker.AdvancedMarkerElement({
               position,
-              label: {
-                text: String(count),
-                color: "white",
-                fontSize: "12px"
-              },
-              map: map,
-              zIndex: 1000 + count,
-              icon: {
-                url: "https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m1.png",
-                anchor: new google.maps.Point(27, 26),
-                scaledSize: new google.maps.Size(53, 52)
-              }
+              map,
+              title: `${count} locais`,
+              content: criarCluster(count)
             });
           }
         }
       });
 
-      console.log("✔️ Clusters configurados com renderer.");
+      console.log("✔️ Clusters configurados com AdvancedMarkerElement.");
     } catch (e) {
       console.error("Falha ao criar os clusters:", e);
     }
   }
+}
+
+// Cria um elemento visual para o marcador avançado (pode ser um ícone ou bolha)
+function criarElementoPersonalizado(data) {
+  const div = document.createElement('div');
+  div.className = 'custom-marker';
+  div.style.backgroundImage = `url(${data.icone})`;
+  div.style.width = '32px';
+  div.style.height = '32px';
+  div.style.backgroundSize = 'cover';
+  div.style.borderRadius = '50%';
+  return div;
+}
+
+// Cria um cluster visual
+function criarCluster(count) {
+  const div = document.createElement('div');
+  div.className = 'cluster-marker';
+  div.textContent = count;
+  div.style.background = '#4285F4';
+  div.style.color = 'white';
+  div.style.fontSize = '12px';
+  div.style.width = '40px';
+  div.style.height = '40px';
+  div.style.borderRadius = '50%';
+  div.style.display = 'flex';
+  div.style.alignItems = 'center';
+  div.style.justifyContent = 'center';
+  div.style.boxShadow = '0 0 4px rgba(0,0,0,0.3)';
+  return div;
 }
