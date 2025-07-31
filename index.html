@@ -62,12 +62,16 @@
         </aside>
     </div>
 
-    <!-- Carrega o seu script principal como um módulo -->
+    <!-- ======================= SEÇÃO DE SCRIPTS CORRIGIDA ======================= -->
+
+    <!-- 1. PRIMEIRO, carregue o seu script principal COMO MÓDULO. -->
+    <!--    Isso garante que a função window.initMap seja definida ANTES da API do Google ser carregada. -->
     <script type="module" src="main.js"></script>
 
-    <!-- Carrega a API do Google Maps de forma limpa e assíncrona -->
-    <!-- A API chamará a função global `initMap` (definida em main.js) quando estiver pronta -->
-    <script async src="https://maps.googleapis.com/maps/api/js?key=SUA_CHAVE_API_AQUI&callback=initMap&v=beta"></script>
+    <!-- 2. SEGUNDO, carregue a API do Google Maps. -->
+    <!--    O atributo 'async' foi removido para forçar o carregamento em ordem, após o main.js. -->
+    <!--    Isso resolve o erro "initMap is not a function". -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=SUA_CHAVE_API_AQUI&callback=initMap&v=beta"></script>
 
 </body>
 </html>
