@@ -1,6 +1,11 @@
-// loader.js (Versão Final e Correta)
+// loader.js (Plano P - Usando a Biblioteca Mapeadora)
 
-// 1. Função para carregar um script e retornar uma Promise.
+import { init } from './main.js';
+
+// 1. Anexa a função init ao window para que a API do Google a encontre.
+window.initMap = init;
+
+// 2. Função para carregar um script e retornar uma Promise.
 function loadScript(src) {
     return new Promise((resolve, reject) => {
         const script = document.createElement('script');
@@ -11,29 +16,26 @@ function loadScript(src) {
     });
 }
 
-// 2. Ponto de partida principal do aplicativo.
-async function start() {
+// 3. Ponto de partida principal do aplicativo.
+async function startApp() {
     const apiKey = "AIzaSyB0b1zuLpUMNoppvRFE8Ta8G0RPERIZLVA";
     
-    // URLs dos scripts globais
-    const markerClustererURL = "https://unpkg.com/@googlemaps/markerclustererplus/dist/index.min.js";
-    const googleMapsURL = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=maps,marker`;
+    // CORREÇÃO: URL da biblioteca de cluster alternativa e estável.
+    const markerClustererURL = "https://unpkg.com/@mapeadora/markerclusterer/dist/index.min.js";
+    
+    // URL da API do Google, usando a versão estável.
+    const googleMapsURL = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=maps,marker&callback=initMap`;
 
     try {
         // PRIMEIRO, carrega e espera pelo MarkerClusterer.
-        console.log("Carregando MarkerClusterer..." );
+        console.log("Carregando MarkerClusterer (Mapeadora )...");
         await loadScript(markerClustererURL);
-        console.log("✔️ MarkerClusterer carregado e pronto.");
+        console.log("✔️ MarkerClusterer (Mapeadora) carregado e pronto.");
 
-        // SEGUNDO, carrega a API principal do Google Maps.
+        // SÓ ENTÃO, carrega a API principal do Google Maps.
         console.log("Carregando Google Maps API...");
         await loadScript(googleMapsURL);
-        console.log("✔️ Google Maps API carregada e pronta.");
-
-        // SÓ DEPOIS de tudo carregado, importa e executa o main.js.
-        console.log("Carregando o módulo principal do aplicativo...");
-        const main = await import('./main.js');
-        main.init(); // Chama a função exportada do main.js
+        // A API do Google chamará initMap automaticamente.
 
     } catch (error) {
         console.error("Falha ao carregar os scripts necessários.", error);
@@ -41,4 +43,4 @@ async function start() {
 }
 
 // Inicia todo o processo.
-start();
+startApp();
