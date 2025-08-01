@@ -1,5 +1,10 @@
+// main.js
+// Importa a variável 'dados' do módulo dados.js
+import { dados } from './dados.js';
+
 // A função initMap é atribuída ao objeto `window` para que o callback da API do Google Maps possa encontrá-la.
 window.initMap = async () => {
+    // Agora 'dados' está disponível aqui
     const mapa = new google.maps.Map(document.getElementById("map"), {
         center: { lat: -23.55052, lng: -46.633308 },
         zoom: 12,
@@ -10,7 +15,7 @@ window.initMap = async () => {
 
     // Array para armazenar os marcadores
     let marcadores = [];
-    
+
     // Supondo que a variável `dados` esteja disponível a partir de `dados.js`
     for (const item of dados) {
         const marker = new google.maps.marker.AdvancedMarkerElement({
@@ -26,7 +31,7 @@ window.initMap = async () => {
 
         marcadores.push(marker);
     }
-    
+
     // Instancia o MarkerClusterer
     new MarkerClusterer({ markers: marcadores, map: mapa });
 
