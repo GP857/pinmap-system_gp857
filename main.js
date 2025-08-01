@@ -1,16 +1,15 @@
 // main.js
 
 // --- LOCAL ONDE VOCÊ INSERE A CHAVE DE API ---
-// ATENÇÃO: Esta forma só é segura se o seu repositório for privado!
-// Não inclua sua chave aqui se o código for público.
-const apiKey = AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho;
+// ATENÇÃO: A sua chave DEVE ser colocada entre aspas, como no exemplo.
+const apiKey = 'AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho'; // Insira a sua chave aqui dentro das aspas!
 
 /**
  * Função assíncrona para buscar dados de uma API usando a chave fornecida.
  */
 async function fetchData() {
     // Verifica se a chave de API foi inserida
-    if (apiKey === AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho) {
+    if (apiKey === 'AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho') {
         document.getElementById('result').textContent = 'Erro: Por favor, insira sua chave de API no arquivo main.js.';
         return;
     }
@@ -48,4 +47,3 @@ async function fetchData() {
 // Adiciona um evento de clique ao botão com o ID "fetchButton".
 // Quando o botão é clicado, a função fetchData é executada.
 document.getElementById('fetchButton').addEventListener('click', fetchData);
-
