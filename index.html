@@ -1,77 +1,88 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PINMAP - Sistema de Busca Avançado (Google Maps)</title>
-    <link rel="stylesheet" href="style.css">
-    <!-- Link para Font Awesome corrigido -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>Exemplo de Chave de API</title>
+    <!-- Inclui o Tailwind CSS para estilização rápida e responsiva -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
 </head>
-<body>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
 
-    <div class="main-container">
-        <!-- Cabeçalho (Header) com logo e botões -->
-        <header id="header" class="header">
-            <div class="header-content">
-                <div class="logo-container">
-                    <!-- Link para a imagem placeholder corrigido -->
-                    <img src="https://placehold.co/100x50/FFFFFF/000000?text=PINMAP" alt="Logo" class="logo">
-                    <span class="app-title">PINMAP v5.2</span>
-                </div>
+    <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-lg text-center">
+        <h1 class="text-2xl font-bold mb-4 text-gray-800">
+            Exemplo de Requisição de API
+        </h1>
+        <p class="text-gray-600 mb-6">
+            Pressione o botão para buscar dados de uma API usando a chave fornecida.
+        </p>
 
-                <div class="header-actions">
-                    <button id="toggle-header-btn" class="icon-button" title="Ocultar Cabeçalho">
-                        <i class="fas fa-chevron-up"></i>
-                    </button>
-                    <button id="toggle-stats-btn" class="icon-button" title="Ocultar Estatísticas do Mapa">
-                        <i class="fas fa-chevron-down"></i>
-                    </button>
-                    <div class="rotate-controls">
-                        <button id="rotate-left-btn" class="icon-button" title="Girar para Esquerda">
-                            <i class="fas fa-undo"></i>
-                        </button>
-                        <button id="rotate-right-btn" class="icon-button" title="Girar para Direita">
-                            <i class="fas fa-redo"></i>
-                        </button>
-                        <button id="reset-rotation-btn" class="icon-button" title="Reiniciar Rotação">
-                            <i class="fas fa-sync-alt"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </header>
+        <!-- Botão para acionar a chamada da API -->
+        <button id="fetchButton" class="bg-indigo-600 text-white font-medium py-3 px-6 rounded-xl hover:bg-indigo-700 transition-colors duration-200 shadow-md">
+            Buscar Dados
+        </button>
 
-        <!-- Estatísticas do Mapa (Map Stats) -->
-        <div id="map-stats" class="map-stats">
-            <p>Nível de Zoom: <span id="zoom-level">--</span></p>
-            <p>Centro: <span id="center-coords">--</span></p>
-            <p>Marcadores Visíveis: <span id="visible-markers">--</span></p>
+        <!-- Área para exibir o resultado da API -->
+        <div id="result" class="mt-8 p-4 bg-gray-50 rounded-xl text-gray-700 text-left whitespace-pre-wrap">
+            Nenhum dado exibido ainda.
         </div>
-
-        <!-- Onde o mapa será renderizado -->
-        <div id="map" class="map"></div>
-
-        <!-- Painel lateral (Sidebar) -->
-        <aside id="sidebar" class="sidebar">
-            <!-- Conteúdo da barra lateral (será preenchido dinamicamente) -->
-            <div id="results-list" class="results-list">
-                <!-- A lista de resultados da busca aparecerá aqui -->
-            </div>
-        </aside>
-
-        <!-- Scripts, carregados como módulos -->
-        <!-- Carrega a biblioteca MarkerClusterer antes do seu script principal -->
-        <!-- Link corrigido -->
-        <script src="https://unpkg.com/@googlemaps/markerclusterer@2.0.0/dist/index.min.js"></script>
-        
-        <script type="module" src="dados.js"></script>
-        <script type="module" src="main.js"></script>
-        
-        <!-- Carrega a API do Google Maps de forma assíncrona com um callback -->
-        <!-- Link corrigido -->
-        <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho&libraries=places,marker&loading=async&callback=initMap&v=beta"></script>
     </div>
+
+    <script>
+        // --- LOCAL ONDE VOCÊ INSERE A CHAVE DE API ---
+        // ATENÇÃO: Esta forma só é segura se o seu repositório for privado!
+        // Não inclua sua chave aqui se o código for público.
+        const apiKey = AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho;
+
+        // --- EXERCÍCIO: EXPLICANDO COMO USAR A CHAVE ---
+
+        // Função assíncrona para buscar dados da API
+        async function fetchData() {
+            // Verifica se a chave de API foi inserida
+            if (apiKey === AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho) {
+                document.getElementById('result').textContent = 'Erro: Por favor, insira sua chave de API no código.';
+                return;
+            }
+            
+            // Exemplo de URL de API com a chave como parâmetro
+            // A forma de usar a chave (seja na URL, no cabeçalho, etc.)
+            // depende da documentação da API que você está usando.
+            const apiUrl = `https://exemplo-api.com/dados?key=${apiKey}`;
+
+            // Mensagem de carregamento enquanto a requisição está sendo feita
+            document.getElementById('result').textContent = 'Buscando dados...';
+
+            try {
+                // Realiza a requisição
+                const response = await fetch(apiUrl);
+                
+                // Verifica se a resposta foi bem-sucedida
+                if (!response.ok) {
+                    throw new Error(`Erro de rede: ${response.status}`);
+                }
+
+                // Converte a resposta para JSON
+                const data = await response.json();
+                
+                // Exibe os dados no elemento de resultado
+                document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+
+            } catch (error) {
+                // Em caso de erro, exibe a mensagem de erro
+                document.getElementById('result').textContent = `Falha ao buscar os dados: ${error.message}`;
+                console.error('Erro:', error);
+            }
+        }
+
+        // Adiciona um evento de clique ao botão para chamar a função fetchData
+        document.getElementById('fetchButton').addEventListener('click', fetchData);
+    </script>
 
 </body>
 </html>
