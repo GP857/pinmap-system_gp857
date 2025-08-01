@@ -1,10 +1,8 @@
-// PINMAP - Sistema Final com Usuários Únicos, IDs Reindexados e Localizações Corrigidas
-// Total de 3845 usuários únicos
-// Data de atualização: 2025-07-26 16:34:41 - posix - gustavopinheiro
+// dados.js
 
 export const usuarios = [
-  
   {
+    
     "id": 1,
     "nome": "Juliane Ap. Cyrilo Cunha",
     "cidade": "Paulínia",
