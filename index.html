@@ -1,30 +1,123 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <title>Mapa com Cluster e Marcadores Avançados</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    #map {
-      height: 100vh;
-      width: 100%;
-    }
-  </style>
-</head>
-<body>
-  <div id="map"></div>
+<html>
+  <head>
+    <title>Mapa com Clustering e Busca</title>
+    <meta charset="utf-8" />
+    <style>
+      #map {
+        height: 100vh;
+        width: 100%;
+      }
+      #busca {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 5;
+        background: white;
+        padding: 8px;
+        border-radius: 4px;
+        box-shadow: 0 0 5px rgba(0,0,0,0.3);
+      }
+    </style>
+  </head>
+  <body>
+    <input id="busca" type="text" placeholder="Buscar nome..." />
 
-  <!-- Google Maps API -->
-  <script
-    src="https://maps.googleapis.com/maps/api/js?key=SUA_API_KEY&libraries=marker&callback=initMap"
-    async
-    defer
-  ></script>
+    <div id="map"></div>
 
-  <!-- MarkerClusterer -->
-  <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=SUA_API_KEY&libraries=marker&callback=initMap" async defer></script>
 
-  <!-- Seu script principal -->
-  <script src="main.js"></script>
-</body>
+    <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
+
+    <script src="./usuarios.js"></script> <!-- arquivo com os 3000 usuários -->
+
+    <script>
+      let map;
+      let sistemaBusca;
+
+      function initMap() {
+        console.log("✔️ Google Maps API carregada");
+
+        map = new google.maps.Map(document.getElementById("map"), {
+          center: { lat: -22.9, lng: -47.05 }, // Região de Campinas como exemplo
+          zoom: 10,
+          mapId: "DEMO_MAP_ID",
+        });
+
+        sistemaBusca = new SistemaBuscaMapaGoogle(map);
+        sistemaBusca.carregarMarcadores(usuarios); // usuários do arquivo usuarios.js
+      }
+
+      class SistemaBuscaMapaGoogle {
+        constructor(mapa) {
+          this.mapa = mapa;
+          this.markers = [];
+          this.infoWindow = new google.maps.InfoWindow();
+          this.clusterer = null;
+        }
+
+        limparMarcadores() {
+          if (this.clusterer) {
+            this.clusterer.clearMarkers();
+          }
+          for (const marker of this.markers) {
+            marker.setMap(null);
+          }
+          this.markers = [];
+        }
+
+        carregarMarcadores(dados) {
+          this.limparMarcadores();
+
+          for (const item of dados) {
+            if (!item.nome || !item.latitude || !item.longitude) continue;
+
+            const marker = new google.maps.marker.AdvancedMarkerElement({
+              map: this.mapa,
+              position: { lat: item.latitude, lng: item.longitude },
+              title: item.nome,
+            });
+
+            marker.addListener("click", () => {
+              this.infoWindow.setContent(`
+                <div><strong>${item.nome}</strong><br>${item.descricao || ""}<br>
+                <a href="${item.linkDetalhes || '#'}" target="_blank">Detalhes</a></div>
+              `);
+              this.infoWindow.open(this.mapa, marker);
+            });
+
+            this.markers.push(marker);
+          }
+
+          // Clusterização
+          this.clusterer = new markerClusterer.MarkerClusterer({
+            map: this.mapa,
+            markers: this.markers,
+          });
+        }
+
+        filtrarPorNome(texto) {
+          const termo = texto.trim().toLowerCase();
+          if (!termo) {
+            this.carregarMarcadores(usuarios);
+            return;
+          }
+
+          const filtrados = usuarios.filter((u) =>
+            u.nome && u.nome.toLowerCase().includes(termo)
+          );
+
+          this.carregarMarcadores(filtrados);
+        }
+      }
+
+      // Busca por nome no campo de texto
+      document.getElementById("busca").addEventListener("input", (e) => {
+        const valor = e.target.value;
+        if (sistemaBusca) {
+          sistemaBusca.filtrarPorNome(valor);
+        }
+      });
+    </script>
+  </body>
 </html>
