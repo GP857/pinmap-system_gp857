@@ -3,6 +3,7 @@
 // Data de atualização: 2025-07-26 16:34:41 - posix - gustavopinheiro
 
 export const usuarios = [
+  
   {
     "id": 1,
     "nome": "Juliane Ap. Cyrilo Cunha",
