@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Meu Primeiro Mapa Google</title>
+    <title>Mapa com Muitos Pontos e Clusters</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
       /* Garante que o mapa ocupe 100% da altura da tela */
@@ -20,25 +20,48 @@
   <body>
     <div id="map"></div>
 
-    <script>
+    <script src="./dados.js"></script>
+
+    <script type="module">
+      // Importa a biblioteca MarkerClusterer.
+      // Estamos usando a versão CDN (Content Delivery Network) para simplificar,
+      // pois não exige a configuração de um ambiente Node.js/NPM por enquanto.
+      import { MarkerClusterer } from "https://unpkg.com/@googlemaps/markerclusterer@2.0.0/dist/index.min.js";
+
       let map; // Variável global para armazenar a instância do mapa
 
-      // Função assíncrona para inicializar o mapa
+      // Função assíncrona para inicializar o mapa e adicionar os marcadores agrupados
       async function initMap() {
-        // Carrega a biblioteca 'maps' da API do Google Maps
-        // 'importLibrary' é a forma moderna e recomendada de carregar bibliotecas
+        // Carrega as bibliotecas necessárias da API do Google Maps.
+        // 'maps' é a biblioteca principal do mapa.
+        // 'marker' é a biblioteca para os marcadores avançados (AdvancedMarkerElement).
         const { Map } = await google.maps.importLibrary("maps");
+        const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
 
-        // Cria uma nova instância do mapa
+        // Cria uma nova instância do mapa.
         map = new Map(document.getElementById("map"), {
-          center: { lat: -23.5505, lng: -46.6333 }, // São Paulo, Brasil (Latitude, Longitude)
-          zoom: 12, // Nível de zoom inicial
-          mapId: "DEMO_MAP_ID", // ID de um mapa de demonstração. Você pode criar o seu no Google Cloud se quiser personalizar.
+          center: { lat: -23.5505, lng: -46.6333 }, // Centraliza o mapa em São Paulo, Brasil. Ajuste se preferir outro local.
+          zoom: 5, // Nível de zoom inicial. Um zoom menor ajuda a ver os clusters de imediato.
+          mapId: "DEMO_MAP_ID", // ID de um mapa de demonstração. Você pode criar o seu no Google Cloud para personalizar estilos.
         });
+
+        // Cria os marcadores a partir da array 'locations' (que vem do dados.js).
+        // Para cada localização na array, cria um AdvancedMarkerElement.
+        const markers = locations.map((position) => {
+          return new AdvancedMarkerElement({
+            position: position,
+            // Não defina 'map' aqui. O MarkerClusterer irá gerenciar a adição/remoção do mapa.
+          });
+        });
+
+        // Adiciona o MarkerClusterer para gerenciar o agrupamento dos marcadores.
+        // Ele automaticamente agrupará marcadores próximos e os desagrupará conforme o zoom.
+        new MarkerClusterer({ markers, map });
       }
 
-      // Este é o "bootstrap" da API, que carrega o script principal do Google Maps.
-      // Ele garante que a API esteja pronta para ser usada.
+      // Este é o "bootstrap" da API do Google Maps.
+      // Ele garante que a API principal seja carregada de forma assíncrona.
+      // Substitua "YOUR_API_KEY" pela sua chave real da API.
       (g => {
         var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
         key: "AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho", // <--- SUBSTITUA ESTE TEXTO PELA SUA CHAVE REAL DA API AQUI!
