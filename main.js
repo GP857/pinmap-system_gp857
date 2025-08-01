@@ -1,8 +1,9 @@
 // main.js
 
 // --- LOCAL ONDE VOCÊ INSERE A CHAVE DE API ---
-// ATENÇÃO: A sua chave DEVE ser colocada entre aspas, como no exemplo.
-const apiKey = 'AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho'; // Insira a sua chave aqui dentro das aspas!
+// Substitua o texto 'SUA_CHAVE_DE_API_AQUI' pela sua chave real.
+// Certifique-se de que a chave permaneça entre aspas!
+const apiKey = 'AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho'; // Exemplo: Substitua este texto pela sua chave!
 
 /**
  * Função assíncrona para buscar dados de uma API usando a chave fornecida.
