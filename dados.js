@@ -1,7 +1,7 @@
 // dados.js
-
+// Exporta a variável 'dados' para que outros módulos possam importá-la.
 export const dados = [
-  {
+    {
     
     "id": 1,
     "nome": "Juliane Ap. Cyrilo Cunha",
