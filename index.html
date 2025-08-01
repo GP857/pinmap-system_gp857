@@ -3,42 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exemplo de Arquivos Separados</title>
-    <!-- Inclui o Tailwind CSS para estilização rápida e responsiva -->
+    <title>Exemplo de Mapa do Google</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
         body {
             font-family: 'Inter', sans-serif;
         }
+        #map {
+            width: 100%;
+            height: 80vh; /* Ocupa 80% da altura da tela */
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+<body class="bg-gray-100 p-8 flex flex-col items-center min-h-screen">
 
-    <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-lg text-center">
-        <h1 class="text-2xl font-bold mb-4 text-gray-800">
-            Exemplo de Requisição de API
-        </h1>
-        <p class="text-gray-600 mb-6">
-            Pressione o botão para buscar dados de uma API usando a chave fornecida no arquivo main.js.
-        </p>
+    <div class="bg-white p-8 rounded-2xl shadow-xl max-w-4xl w-full">
+        <h1 class="text-3xl font-bold text-gray-800 text-center mb-4">Mapa de Exemplo</h1>
+        <p class="text-gray-600 text-center mb-6">Este mapa está centrado em Campinas, Brasil. Você pode interagir com ele, dar zoom e mover-se.</p>
+        
+        <!-- Onde o mapa será exibido -->
+        <div id="map" class="mb-6"></div>
 
-        <!-- Botão para acionar a chamada da API -->
-        <button id="fetchButton" class="bg-indigo-600 text-white font-medium py-3 px-6 rounded-xl hover:bg-indigo-700 transition-colors duration-200 shadow-md">
-            Buscar Dados
-        </button>
-
-        <!-- Área para exibir o resultado da API -->
-        <div id="result" class="mt-8 p-4 bg-gray-50 rounded-xl text-gray-700 text-left whitespace-pre-wrap">
-            Nenhum dado exibido ainda.
+        <div class="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+            <p class="text-sm text-yellow-800 font-medium">
+                <strong>Aviso:</strong> Para que o mapa funcione, você deve obter uma chave de API do Google Maps e inseri-la no código.
+            </p>
         </div>
     </div>
+    
+    <script>
+        // ----------------------------------------------------
+        // ATENÇÃO: COLOQUE SUA CHAVE DE API AQUI!
+        //
+        // 1. Obtenha sua chave de API do Google Maps.
+        // 2. Substitua 'SUA_CHAVE_DE_API_AQUI' pela sua chave real,
+        //    mantendo as aspas.
+        // ----------------------------------------------------
+        const apiKey = 'SUA_CHAVE_DE_API_AQUI';
 
-    <!--
-        Esta linha é crucial! Ela referencia o seu arquivo de script externo.
-        Certifique-se de que o nome do arquivo aqui corresponda ao nome do seu arquivo JavaScript.
-    -->
-    <script src="main.js"></script>
+        /**
+         * Inicializa e exibe o mapa.
+         */
+        function initMap() {
+            // Verifica se a chave foi inserida.
+            if (apiKey === 'SUA_CHAVE_DE_API_AQUI' || !apiKey) {
+                document.getElementById('map').innerHTML = `
+                    <div class="flex items-center justify-center w-full h-full text-center text-red-500 font-bold p-4">
+                        Por favor, insira sua chave de API do Google Maps.
+                    </div>
+                `;
+                return;
+            }
+
+            // A localização de Campinas, Brasil.
+            const campinas = { lat: -22.9056, lng: -47.0608 };
+            
+            // Cria uma nova instância do mapa.
+            const map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 12, // Nível de zoom inicial
+                center: campinas, // Ponto central do mapa
+                mapId: 'DEMO_MAP_ID' // Um ID de mapa de exemplo. Para produção, use o seu próprio.
+            });
+            
+            // Opcional: Adiciona um marcador no ponto central.
+            new google.maps.Marker({
+                position: campinas,
+                map: map,
+                title: 'Campinas, Brasil'
+            });
+        }
+
+        // Esta função é chamada automaticamente pela API do Google Maps
+        // quando ela termina de carregar.
+        window.initMap = initMap;
+    </script>
+    
+    <!-- Este script carrega a API do Google Maps. O parâmetro 'callback=initMap' garante
+         que a função initMap será chamada assim que a API estiver pronta. -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap"></script>
 
 </body>
 </html>
