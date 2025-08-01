@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Mapa com Muitos Pontos e Clusters (Versão Final de Teste Local)</title>
+    <title>Mapa com Marcadores Individuais (Versão de Teste)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
       html, body {
@@ -25,38 +25,39 @@
 
       async function initMap() {
         // Carrega as bibliotecas 'maps' e 'marker' (para AdvancedMarkerElement)
+        // Não há carregamento de 'markerclusterer' aqui.
         const { Map } = await google.maps.importLibrary("maps");
         const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
         
-        // Acesso ao MarkerClusterer diretamente do objeto global google.maps,
-        // pois ele foi carregado via o parâmetro 'libraries' no bootstrap.
-        const { MarkerClusterer } = await google.maps.importLibrary("markerclusterer");
-
         map = new Map(document.getElementById("map"), {
           center: { lat: -23.5505, lng: -46.6333 }, // Centraliza em São Paulo, Brasil
-          zoom: 5, // Zoom inicial para ver os clusters
-          mapId: "DEMO_MAP_ID", // ID de um mapa de demonstração.
+          zoom: 5, // Zoom inicial
+          mapId: "DEMO_MAP_ID", // ID de um mapa de demonstração (opcional)
         });
 
-        // Cria os marcadores a partir da array 'locations'
-        const markers = locations.map((position) => {
-          return new AdvancedMarkerElement({
-            position: position,
-            // Não adicione 'map' aqui; o MarkerClusterer vai gerenciar a exibição
-          });
-        });
-
-        // Adiciona o MarkerClusterer ao mapa
-        new MarkerClusterer({ markers, map });
+        // Cria e adiciona CADA MARCADOR INDIVIDUALMENTE ao mapa
+        // Verifica se 'locations' foi carregado corretamente antes de tentar iterar
+        if (typeof locations !== 'undefined' && Array.isArray(locations)) {
+            locations.forEach((data) => {
+              new AdvancedMarkerElement({
+                position: { lat: data.latitude, lng: data.longitude }, // Acessa latitude e longitude do objeto data
+                map: map, // O marcador é ADICIONADO DIRETAMENTE ao mapa
+                title: data.nome // Opcional: define um título para o marcador (aparece ao passar o mouse)
+              });
+            });
+            console.log("Total de pontos carregados:", locations.length);
+        } else {
+            console.error("A array 'locations' não foi carregada ou não é uma array válida.");
+        }
       }
 
-      // Bootstrap da API do Google Maps.
-      // É CRÍTICO que 'markerclusterer' esteja na lista 'libraries' aqui.
+      // Bootstrap da API do Google Maps
+      // A lista de 'libraries' agora contém apenas as bibliotecas essenciais para este teste
       (g => {
         var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
         key: "AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho", // <--- SUBSTITUA ESTE TEXTO PELA SUA CHAVE REAL DA API AQUI!
         v: "weekly",
-        libraries: ["markerclusterer"], // <--- ESSA LINHA GARANTE O CARREGAMENTO DO MARKERCLUSTERER
+        libraries: ["maps", "marker"], // <--- APENAS AS BIBLIOTECAS ESSENCIAIS AQUI. NADA DE CLUSTER.
       });
 
       initMap();
