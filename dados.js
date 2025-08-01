@@ -1,6 +1,6 @@
 // dados.js
 
-export const usuarios = [
+export const dados = [
   {
     
     "id": 1,
