@@ -1,88 +1,52 @@
 <!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exemplo de Mapa do Google</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+<html>
+  <head>
+    <title>Meu Primeiro Mapa Google</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        #map {
-            width: 100%;
-            height: 80vh; /* Ocupa 80% da altura da tela */
-            border-radius: 1rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
+      /* Garante que o mapa ocupe 100% da altura da tela */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      /* Define a div que conterá o mapa */
+      #map {
+        height: 100%;
+        width: 100%;
+      }
     </style>
-</head>
-<body class="bg-gray-100 p-8 flex flex-col items-center min-h-screen">
+  </head>
+  <body>
+    <div id="map"></div>
 
-    <div class="bg-white p-8 rounded-2xl shadow-xl max-w-4xl w-full">
-        <h1 class="text-3xl font-bold text-gray-800 text-center mb-4">Mapa de Exemplo</h1>
-        <p class="text-gray-600 text-center mb-6">Este mapa está centrado em Campinas, Brasil. Você pode interagir com ele, dar zoom e mover-se.</p>
-        
-        <!-- Onde o mapa será exibido -->
-        <div id="map" class="mb-6"></div>
-
-        <div class="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-            <p class="text-sm text-yellow-800 font-medium">
-                <strong>Aviso:</strong> Para que o mapa funcione, você deve obter uma chave de API do Google Maps e inseri-la no código.
-            </p>
-        </div>
-    </div>
-    
     <script>
-        // ----------------------------------------------------
-        // ATENÇÃO: COLOQUE SUA CHAVE DE API AQUI!
-        //
-        // 1. Obtenha sua chave de API do Google Maps.
-        // 2. Substitua 'SUA_CHAVE_DE_API_AQUI' pela sua chave real,
-        //    mantendo as aspas.
-        // ----------------------------------------------------
-        const apiKey = 'AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho';
+      let map; // Variável global para armazenar a instância do mapa
 
-        /**
-         * Inicializa e exibe o mapa.
-         */
-        function initMap() {
-            // Verifica se a chave foi inserida.
-            if (apiKey === 'AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho' || !apiKey) {
-                document.getElementById('map').innerHTML = `
-                    <div class="flex items-center justify-center w-full h-full text-center text-red-500 font-bold p-4">
-                        Por favor, insira sua chave de API do Google Maps.
-                    </div>
-                `;
-                return;
-            }
+      // Função assíncrona para inicializar o mapa
+      async function initMap() {
+        // Carrega a biblioteca 'maps' da API do Google Maps
+        // 'importLibrary' é a forma moderna e recomendada de carregar bibliotecas
+        const { Map } = await google.maps.importLibrary("maps");
 
-            // A localização de Campinas, Brasil.
-            const campinas = { lat: -22.9056, lng: -47.0608 };
-            
-            // Cria uma nova instância do mapa.
-            const map = new google.maps.Map(document.getElementById('map'), {
-                zoom: 12, // Nível de zoom inicial
-                center: campinas, // Ponto central do mapa
-                mapId: 'DEMO_MAP_ID' // Um ID de mapa de exemplo. Para produção, use o seu próprio.
-            });
-            
-            // Opcional: Adiciona um marcador no ponto central.
-            new google.maps.Marker({
-                position: campinas,
-                map: map,
-                title: 'Campinas, Brasil'
-            });
-        }
+        // Cria uma nova instância do mapa
+        map = new Map(document.getElementById("map"), {
+          center: { lat: -23.5505, lng: -46.6333 }, // São Paulo, Brasil (Latitude, Longitude)
+          zoom: 12, // Nível de zoom inicial
+          mapId: "DEMO_MAP_ID", // ID de um mapa de demonstração. Você pode criar o seu no Google Cloud se quiser personalizar.
+        });
+      }
 
-        // Esta função é chamada automaticamente pela API do Google Maps
-        // quando ela termina de carregar.
-        window.initMap = initMap;
+      // Este é o "bootstrap" da API, que carrega o script principal do Google Maps.
+      // Ele garante que a API esteja pronta para ser usada.
+      (g => {
+        var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
+        key: "YOUR_API_KEY", // <--- SUBSTITUA ESTE TEXTO PELA SUA CHAVE REAL DA API AQUI!
+        v: "weekly", // Versão da API (recomenda-se 'weekly' para as últimas atualizações estáveis)
+      });
+
+      // Chama a função para inicializar o mapa assim que o script é carregado
+      initMap();
     </script>
-    
-    <!-- Este script carrega a API do Google Maps. O parâmetro 'callback=initMap' garante
-         que a função initMap será chamada assim que a API estiver pronta. -->
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap"></script>
-
-</body>
+  </body>
 </html>
