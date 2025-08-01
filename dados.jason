@@ -864,4 +864,35 @@
     "pais": "Brasil",
     "localizacao": "Campinas, SP, Brasil",
     "descricao": "Usuário da cidade de Campinas.",
-    "link"
+    "link": "https://www.google.com/maps/search/?api=1&query=-22.976843,-47.1164158",
+    "icone": "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
+  },
+  {
+    "id": 63,
+    "nome": "David Fabio da Silva",
+    "cidade": "Campinas",
+    "estado": "SP",
+    "latitude": -22.9380711,
+    "longitude": -47.116636,
+    "cep": "13060740",
+    "pais": "Brasil",
+    "localizacao": "Campinas, SP, Brasil",
+    "descricao": "Usuário da cidade de Campinas.",
+    "link": "https://www.google.com/maps/search/?api=1&query=-22.9380711,-47.116636",
+    "icone": "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
+  },
+  {
+    "id": 64,
+    "nome": "Raphael Montali da Assumpção",
+    "cidade": "Campinas",
+    "estado": "SP",
+    "latitude": -22.8779459,
+    "longitude": -47.0510204,
+    "cep": "13076869",
+    "pais": "Brasil",
+    "localizacao": "Campinas, SP, Brasil",
+    "descricao": "Usuário da cidade de Campinas.",
+    "link": "https://www.google.com/maps/search/?api=1&query=-22.8779459,-47.0510204",
+    "icone": "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
+  }
+]
