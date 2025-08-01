@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Mapa com Clusters (Via importLibrary)</title>
+    <title>Mapa com Clusters - Final e Funcional</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
       html, body {
@@ -20,16 +20,13 @@
 
     <script src="./dados.js"></script>
 
-    <script type="module">
+    <script>
       let map;
 
       async function initMap() {
-        // Carrega as bibliotecas da API do Google Maps.
-        // O MarkerClusterer agora será carregado via importLibrary.
+        // Carrega as bibliotecas 'maps' e 'marker' (para AdvancedMarkerElement)
         const { Map, InfoWindow } = await google.maps.importLibrary("maps");
         const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
-        // AQUI ESTÁ A MUDANÇA CRÍTICA: Importar o MarkerClusterer através da API
-        const { MarkerClusterer } = await google.maps.importLibrary("markerclusterer");
         
         map = new Map(document.getElementById("map"), {
           center: { lat: -23.5505, lng: -46.6333 }, // Centraliza em São Paulo, Brasil
@@ -37,7 +34,6 @@
           mapId: "DEMO_MAP_ID", // ID de um mapa de demonstração (opcional)
         });
 
-        // Opcional: Para janelas de informação (info windows) ao clicar em marcadores individuais
         const infoWindow = new InfoWindow({
           content: "",
           disableAutoPan: true,
@@ -47,9 +43,7 @@
         if (typeof locations !== 'undefined' && Array.isArray(locations)) {
             // Cria os marcadores a partir da array 'locations'
             const markers = locations.map((data) => {
-              // Exemplo de como usar PinElement para ícones personalizados com letras
-              // Você pode adaptar isso ou usar apenas a posição
-              const label = data.nome ? data.nome[0].toUpperCase() : ''; // Pega a primeira letra do nome
+              const label = data.nome ? data.nome[0].toUpperCase() : '';
               const pinGlyph = new PinElement({
                 glyph: label,
                 glyphColor: "white",
@@ -57,11 +51,10 @@
 
               const marker = new AdvancedMarkerElement({
                 position: { lat: data.latitude, lng: data.longitude },
-                content: pinGlyph.element, // Usa o PinElement como conteúdo
-                title: data.nome // Título do marcador
+                content: pinGlyph.element,
+                title: data.nome
               });
 
-              // Adiciona listener para abrir InfoWindow ao clicar no marcador individual
               marker.addListener("click", () => {
                 infoWindow.setContent(`<h3>${data.nome}</h3><p>${data.localizacao}</p><p>ID: ${data.id}</p>`);
                 infoWindow.open(map, marker);
@@ -71,9 +64,13 @@
             });
 
             // Adiciona o MarkerClusterer ao mapa
-            new MarkerClusterer({ markers, map });
-            
-            console.log("Total de pontos carregados e clusters aplicados:", locations.length);
+            // AQUI ESTÁ A CORREÇÃO FINAL: ACESSAR markerClusterer.MarkerClusterer
+            if (typeof markerClusterer !== 'undefined' && typeof markerClusterer.MarkerClusterer !== 'undefined') {
+                new markerClusterer.MarkerClusterer({ markers, map });
+                console.log("Total de pontos carregados e clusters aplicados:", locations.length);
+            } else {
+                console.error("Erro: MarkerClusterer não foi carregado corretamente ou não está acessível como 'markerClusterer.MarkerClusterer'.");
+            }
 
         } else {
             console.error("A array 'locations' não foi carregada ou não é uma array válida.");
@@ -81,16 +78,18 @@
       }
 
       // Bootstrap da API do Google Maps
-      // É CRÍTICO que 'markerclusterer' esteja na lista 'libraries' AQUI.
+      // A lista de 'libraries' contém apenas as bibliotecas essenciais para o mapa e marcadores.
       (g => {
         var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
         key: "AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho", // <--- SUBSTITUA ESTE TEXTO PELA SUA CHAVE REAL DA API AQUI!
         v: "weekly",
-        libraries: ["maps", "marker", "markerclusterer"], // <--- AGORA INCLUIMOS "markerclusterer" AQUI
+        libraries: ["maps", "marker"], // <--- APENAS AS BIBLIOTECAS ESSENCIAIS DO GOOGLE MAPS.
       });
 
       initMap();
     </script>
+
+    <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
     
   </body>
 </html>
