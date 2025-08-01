@@ -139,4 +139,5 @@ const locations = [
     "descricao": "Usuário da cidade de Limeira.",
     "link": "https://www.google.com/maps/search/?api=1&query=-22.5571965,-47.3772316",
     "icone": "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
-  },
+   }
+];
