@@ -1,7 +1,5 @@
 // dados.js
 const locations = [
-  // ... seus pontos aqui ...
-];
     
     "id": 1,
     "nome": "Juliane Ap. Cyrilo Cunha",
