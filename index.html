@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Mapa com Clusters (Tentativa Final)</title>
+    <title>Mapa com Clusters - Funcional (ES Module)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
       html, body {
@@ -20,7 +20,11 @@
 
     <script src="./dados.js"></script>
 
-    <script>
+    <script type="module">
+      // Importa a biblioteca MarkerClusterer como um módulo ES6
+      // Esta URL é a forma mais confiável de importar a versão mais recente.
+      import { MarkerClusterer } from "https://unpkg.com/@googlemaps/markerclusterer@2.0.0/dist/index.min.js";
+
       let map;
 
       async function initMap() {
@@ -46,9 +50,7 @@
             });
 
             // Adiciona o MarkerClusterer ao mapa
-            // A classe MarkerClusterer agora é acessível globalmente,
-            // pois o script do MarkerClusterer é carregado separadamente, abaixo.
-            // O nome da classe para a versão Plus é MarkerClusterer.
+            // Agora a classe MarkerClusterer deve estar definida devido ao import.
             new MarkerClusterer({ markers, map });
             
             console.log("Total de pontos carregados e clusters aplicados:", locations.length);
@@ -69,8 +71,6 @@
 
       initMap();
     </script>
-
-    <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js"></script>
     
-  </body>
+    </body>
 </html>
