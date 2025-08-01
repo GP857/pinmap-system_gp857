@@ -3,6 +3,7 @@ body, html {
     padding: 0;
     height: 100%;
     font-family: 'Arial', sans-serif;
+    overflow: hidden;
 }
 
 #map {
@@ -10,27 +11,56 @@ body, html {
     width: 100%;
 }
 
-/* Estilo para a janela de informação */
+/* Info Window Styles */
 .gm-style .gm-style-iw-c {
-    border-radius: 10px;
+    border-radius: 12px;
     padding: 15px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .gm-style .gm-style-iw-d {
     overflow: auto !important;
+    padding: 5px;
+}
+
+.info-window {
+    font-family: Arial, sans-serif;
+    min-width: 250px;
+}
+
+.info-window h4 {
+    margin: 0 0 10px 0;
+    color: #1a73e8;
+    font-size: 18px;
+}
+
+.info-window p {
+    margin: 0 0 15px 0;
+    color: #5f6368;
+    font-size: 14px;
+    line-height: 1.4;
 }
 
 .btn-detalhes {
-    display: inline-block;
-    background-color: #4285f4;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #1a73e8;
     color: white !important;
     padding: 8px 15px;
-    margin-top: 10px;
     text-decoration: none;
-    border-radius: 5px;
-    font-weight: bold;
+    border-radius: 4px;
+    font-weight: 500;
+    font-size: 14px;
+    transition: background-color 0.2s;
 }
 
 .btn-detalhes:hover {
-    background-color: #3367d6;
+    background-color: #0d62c9;
+    text-decoration: none;
+}
+
+/* Cluster counter fix */
+.marker-cluster div {
+    font-weight: bold !important;
 }
