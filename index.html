@@ -1,36 +1,107 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Mapa com Clusters - Final e Funcional</title>
+    <title>Mapa com Busca de Comércio e Usuários Próximos</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
       html, body {
         height: 100%;
         margin: 0;
         padding: 0;
+        font-family: Arial, sans-serif;
       }
       #map {
         height: 100%;
         width: 100%;
+      }
+      #search-container {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background-color: white;
+        padding: 10px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        z-index: 10;
+        display: flex;
+        flex-direction: column; /* Para empilhar elementos */
+        gap: 5px;
+      }
+      #search-input {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        width: 250px;
+      }
+      .button-group {
+        display: flex;
+        gap: 5px;
+      }
+      #search-button {
+        padding: 8px 12px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      #search-button:hover {
+        background-color: #45a049;
+      }
+      #clear-button {
+        padding: 8px 12px;
+        background-color: #f44336;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      #clear-button:hover {
+        background-color: #da190b;
+      }
+      #radius-input {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        width: 100px;
+      }
+      #radius-label {
+        font-size: 0.9em;
+        color: #555;
       }
     </style>
   </head>
   <body>
     <div id="map"></div>
 
+    <div id="search-container">
+      <input type="text" id="search-input" placeholder="Buscar comércio (ex: 'Padaria')">
+      <div class="button-group">
+        <button id="search-button">Buscar Comércio</button>
+        <button id="clear-button">Limpar Busca</button>
+      </div>
+      <div>
+        <label id="radius-label" for="radius-input">Raio de busca (km):</label>
+        <input type="number" id="radius-input" value="5" min="1" max="100">
+      </div>
+    </div>
+
     <script src="./dados.js"></script>
 
     <script>
       let map;
+      let markerCluster; // Variável para armazenar a instância do MarkerClusterer
+      let commerceMarker = null; // Marcador para o comércio encontrado
 
       async function initMap() {
-        // Carrega as bibliotecas 'maps' e 'marker' (para AdvancedMarkerElement)
+        // Carrega as bibliotecas 'maps', 'marker' e 'places'
         const { Map, InfoWindow } = await google.maps.importLibrary("maps");
         const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
+        // Não precisamos importar 'places' aqui diretamente, mas ela deve estar na lista de libraries no bootstrap
         
         map = new Map(document.getElementById("map"), {
           center: { lat: -23.5505, lng: -46.6333 }, // Centraliza em São Paulo, Brasil
-          zoom: 5, // Nível de zoom inicial para ver os clusters
+          zoom: 5, // Nível de zoom inicial
           mapId: "DEMO_MAP_ID", // ID de um mapa de demonstração (opcional)
         });
 
@@ -39,51 +110,180 @@
           disableAutoPan: true,
         });
 
-        // Verifica se 'locations' foi carregado corretamente antes de tentar criar marcadores
-        if (typeof locations !== 'undefined' && Array.isArray(locations)) {
-            // Cria os marcadores a partir da array 'locations'
-            const markers = locations.map((data) => {
-              const label = data.nome ? data.nome[0].toUpperCase() : '';
-              const pinGlyph = new PinElement({
-                glyph: label,
-                glyphColor: "white",
+        // Função para calcular a distância entre dois pontos (Haversine formula)
+        function getDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Raio da Terra em quilômetros
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            const distance = R * c; // Distância em km
+            return distance;
+        }
+
+        // Função para criar e adicionar marcadores/clusters com base em uma array de dados
+        function displayMarkers(dataArray) {
+          if (markerCluster) {
+            markerCluster.clearMarkers();
+          }
+
+          if (typeof dataArray !== 'undefined' && Array.isArray(dataArray)) {
+              const currentMarkers = dataArray.map((data) => {
+                const label = data.nome ? data.nome[0].toUpperCase() : '';
+                const pinGlyph = new PinElement({
+                  glyph: label,
+                  glyphColor: "white",
+                });
+
+                const marker = new AdvancedMarkerElement({
+                  position: { lat: data.latitude, lng: data.longitude },
+                  content: pinGlyph.element,
+                  title: data.nome
+                });
+
+                marker.addListener("click", () => {
+                  infoWindow.setContent(`<h3>${data.nome}</h3><p>${data.localizacao}</p><p>ID: ${data.id}</p>`);
+                  infoWindow.open(map, marker);
+                });
+
+                return marker;
               });
 
-              const marker = new AdvancedMarkerElement({
-                position: { lat: data.latitude, lng: data.longitude },
-                content: pinGlyph.element,
-                title: data.nome
-              });
+              if (typeof markerClusterer !== 'undefined' && typeof markerClusterer.MarkerClusterer !== 'undefined') {
+                  markerCluster = new markerClusterer.MarkerClusterer({ markers: currentMarkers, map });
+                  console.log(`Total de pontos de usuário exibidos: ${dataArray.length}. Clusters aplicados.`);
+              } else {
+                  console.error("Erro: MarkerClusterer não foi carregado corretamente ou não está acessível como 'markerClusterer.MarkerClusterer'.");
+              }
+          } else {
+              console.error("A array de dados para marcadores não foi carregada ou não é uma array válida.");
+          }
+        }
 
-              marker.addListener("click", () => {
-                infoWindow.setContent(`<h3>${data.nome}</h3><p>${data.localizacao}</p><p>ID: ${data.id}</p>`);
-                infoWindow.open(map, marker);
-              });
+        // --- Lógica de Busca por Comércio ---
+        const searchInput = document.getElementById('search-input');
+        const searchButton = document.getElementById('search-button');
+        const clearButton = document.getElementById('clear-button');
+        const radiusInput = document.getElementById('radius-input');
 
-              return marker;
-            });
+        searchButton.addEventListener('click', performCommerceSearch);
+        clearButton.addEventListener('click', clearSearch);
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                performCommerceSearch();
+            }
+        });
 
-            // Adiciona o MarkerClusterer ao mapa
-            // AQUI ESTÁ A CORREÇÃO FINAL: ACESSAR markerClusterer.MarkerClusterer
-            if (typeof markerClusterer !== 'undefined' && typeof markerClusterer.MarkerClusterer !== 'undefined') {
-                new markerClusterer.MarkerClusterer({ markers, map });
-                console.log("Total de pontos carregados e clusters aplicados:", locations.length);
-            } else {
-                console.error("Erro: MarkerClusterer não foi carregado corretamente ou não está acessível como 'markerClusterer.MarkerClusterer'.");
+        async function performCommerceSearch() {
+            const searchTerm = searchInput.value.trim();
+            const searchRadius = parseFloat(radiusInput.value);
+
+            if (!searchTerm) {
+                alert("Por favor, digite o nome de um comércio para buscar.");
+                return;
+            }
+            if (isNaN(searchRadius) || searchRadius <= 0) {
+                alert("Por favor, insira um raio de busca válido (número positivo).");
+                return;
             }
 
-        } else {
-            console.error("A array 'locations' não foi carregada ou não é uma array válida.");
+            // Limpa o marcador de comércio anterior, se houver
+            if (commerceMarker) {
+                commerceMarker.map = null; // Remove do mapa
+                commerceMarker = null;
+            }
+            
+            // Centraliza a busca do Google Maps na visão atual do mapa para relevância
+            const mapCenter = map.getCenter();
+            const queryLocationBias = `${mapCenter.lat()},${mapCenter.lng()}`;
+
+            // Usa a API de Geocodificação (ou Places API) para encontrar o comércio
+            // Para simplificar, vamos usar google.maps.places.PlacesService.findPlaceFromQuery
+            // que é mais direto para "buscar um lugar".
+            // Nota: Esta abordagem requer a biblioteca 'places' no bootstrap da API.
+
+            const service = new google.maps.places.PlacesService(map);
+            const request = {
+                query: searchTerm,
+                fields: ['name', 'geometry', 'formatted_address'],
+                locationBias: map.getBounds(), // Prioriza resultados dentro da área visível do mapa
+            };
+
+            service.findPlaceFromQuery(request, (results, status) => {
+                if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
+                    const place = results[0]; // Pega o primeiro resultado
+                    const placeLocation = place.geometry.location;
+
+                    // Adiciona um marcador para o comércio encontrado
+                    const commercePinGlyph = new PinElement({
+                        glyph: 'C', // 'C' para Comércio
+                        glyphColor: 'black',
+                        background: '#FFD700', // Cor amarela para o comércio
+                        borderColor: '#DAA520'
+                    });
+                    commerceMarker = new AdvancedMarkerElement({
+                        map: map,
+                        position: placeLocation,
+                        content: commercePinGlyph.element,
+                        title: place.name
+                    });
+
+                    commerceMarker.addListener("click", () => {
+                        infoWindow.setContent(`<h3>Comércio: ${place.name}</h3><p>${place.formatted_address}</p>`);
+                        infoWindow.open(map, commerceMarker);
+                    });
+
+                    // Centraliza o mapa no comércio encontrado
+                    map.setCenter(placeLocation);
+                    map.setZoom(12); // Zoom mais próximo para ver o comércio
+
+                    // Filtra os usuários próximos ao comércio
+                    const nearbyUsers = locations.filter(user => {
+                        const distance = getDistance(
+                            user.latitude, user.longitude,
+                            placeLocation.lat(), placeLocation.lng()
+                        );
+                        return distance <= searchRadius;
+                    });
+
+                    displayMarkers(nearbyUsers); // Exibe apenas os usuários próximos
+                    
+                    if (nearbyUsers.length === 0) {
+                        alert(`Nenhum usuário encontrado em um raio de ${searchRadius} km de "${place.name}".`);
+                    } else {
+                        console.log(`${nearbyUsers.length} usuários encontrados em um raio de ${searchRadius} km de "${place.name}".`);
+                    }
+
+                } else {
+                    alert(`Não foi possível encontrar o comércio "${searchTerm}". Por favor, tente refinar a busca.`);
+                    clearSearch(); // Volta ao estado inicial se não encontrar
+                }
+            });
         }
+
+        function clearSearch() {
+            searchInput.value = ''; // Limpa o campo de busca
+            if (commerceMarker) {
+                commerceMarker.map = null; // Remove o marcador do comércio
+                commerceMarker = null;
+            }
+            displayMarkers(locations); // Mostra todos os pontos de usuário novamente
+            map.setZoom(5); // Volta ao zoom inicial
+            map.setCenter({ lat: -23.5505, lng: -46.6333 }); // Volta ao centro inicial
+        }
+
+        // Inicializa o mapa exibindo todos os pontos de usuário ao carregar
+        displayMarkers(locations);
       }
 
       // Bootstrap da API do Google Maps
-      // A lista de 'libraries' contém apenas as bibliotecas essenciais para o mapa e marcadores.
       (g => {
         var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
         key: "AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho", // <--- SUBSTITUA ESTE TEXTO PELA SUA CHAVE REAL DA API AQUI!
         v: "weekly",
-        libraries: ["maps", "marker"], // <--- APENAS AS BIBLIOTECAS ESSENCIAIS DO GOOGLE MAPS.
+        libraries: ["maps", "marker", "places"], // <--- AGORA INCLUIMOS "places" AQUI!
       });
 
       initMap();
