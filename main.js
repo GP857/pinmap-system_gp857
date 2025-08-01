@@ -1,53 +1,44 @@
-// main.js
-// Importa a variável 'dados' do módulo dados.js
-import { dados } from './dados.js';
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exemplo de Arquivos Separados</title>
+    <!-- Inclui o Tailwind CSS para estilização rápida e responsiva -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
 
-// A função initMap é atribuída ao objeto `window` para que o callback da API do Google Maps possa encontrá-la.
-window.initMap = async () => {
-    // Agora 'dados' está disponível aqui
-    const mapa = new google.maps.Map(document.getElementById("map"), {
-        center: { lat: -23.55052, lng: -46.633308 },
-        zoom: 12,
-        mapId: "DEMO_MAP_ID",
-    });
+    <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-lg text-center">
+        <h1 class="text-2xl font-bold mb-4 text-gray-800">
+            Exemplo de Requisição de API
+        </h1>
+        <p class="text-gray-600 mb-6">
+            Pressione o botão para buscar dados de uma API usando a chave fornecida no arquivo main.js.
+        </p>
 
-    const marcadoresVisiveisSpan = document.getElementById("visible-markers");
+        <!-- Botão para acionar a chamada da API -->
+        <button id="fetchButton" class="bg-indigo-600 text-white font-medium py-3 px-6 rounded-xl hover:bg-indigo-700 transition-colors duration-200 shadow-md">
+            Buscar Dados
+        </button>
 
-    // Array para armazenar os marcadores
-    let marcadores = [];
+        <!-- Área para exibir o resultado da API -->
+        <div id="result" class="mt-8 p-4 bg-gray-50 rounded-xl text-gray-700 text-left whitespace-pre-wrap">
+            Nenhum dado exibido ainda.
+        </div>
+    </div>
 
-    // Supondo que a variável `dados` esteja disponível a partir de `dados.js`
-    for (const item of dados) {
-        const marker = new google.maps.marker.AdvancedMarkerElement({
-            position: { lat: item.lat, lng: item.lng },
-            map: mapa,
-            title: item.titulo,
-        });
+    <!--
+        Esta linha é crucial! Ela referencia o seu arquivo de script externo.
+        Certifique-se de que o nome do arquivo aqui corresponda ao nome do seu arquivo JavaScript.
+    -->
+    <script src="main.js"></script>
 
-        // Adiciona um evento de clique para mostrar informações no console (exemplo)
-        marker.addListener("click", () => {
-            console.log("Clicado no marcador:", item.titulo);
-        });
-
-        marcadores.push(marker);
-    }
-
-    // Instancia o MarkerClusterer
-    new MarkerClusterer({ markers: marcadores, map: mapa });
-
-    // Restante da lógica do seu código, como listeners de eventos do mapa
-    mapa.addListener('bounds_changed', () => {
-        // Lógica para contar marcadores visíveis
-        const bounds = mapa.getBounds();
-        const visiveis = marcadores.filter(m => bounds.contains(m.position)).length;
-        marcadoresVisiveisSpan.textContent = visiveis;
-    });
-
-    // Inicializa a contagem de marcadores visíveis
-    mapa.addListener('idle', () => {
-        const bounds = mapa.getBounds();
-        const visiveis = marcadores.filter(m => bounds.contains(m.position)).length;
-        marcadoresVisiveisSpan.textContent = visiveis;
-    });
-
-};
+</body>
+</html>
