@@ -1,6 +1,7 @@
 // dados.js
 const locations = [
     
+  {
     "id": 1,
     "nome": "Juliane Ap. Cyrilo Cunha",
     "cidade": "Paulínia",
