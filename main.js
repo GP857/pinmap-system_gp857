@@ -1,50 +1,53 @@
 // main.js
 
-// --- LOCAL ONDE VOCÊ INSERE A CHAVE DE API ---
-// Substitua o texto 'SUA_CHAVE_DE_API_AQUI' pela sua chave real.
-// Certifique-se de que a chave permaneça entre aspas!
-const apiKey = 'AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho'; // Exemplo: Substitua este texto pela sua chave!
+// ----------------------------------------------------
+// ATENÇÃO: POR FAVOR, COLOQUE SUA CHAVE DE API AQUI!
+//
+// SUBSTITUA 'COLOQUE_SUA_CHAVE_AQUI' pela sua chave real,
+// mantendo as aspas.
+// ----------------------------------------------------
+const apiKey = 'AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho';
 
 /**
  * Função assíncrona para buscar dados de uma API usando a chave fornecida.
  */
 async function fetchData() {
-    // Verifica se a chave de API foi inserida
+    // Verifica se a chave de API foi inserida.
+    // Se a chave ainda for o placeholder, exibe a mensagem de erro.
     if (apiKey === 'AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho') {
         document.getElementById('result').textContent = 'Erro: Por favor, insira sua chave de API no arquivo main.js.';
         return;
     }
     
-    // Exemplo de URL de API com a chave como parâmetro.
-    // A forma correta de usar a chave (na URL, no cabeçalho, etc.)
-    // depende da API específica que você está utilizando.
-    const apiUrl = `https://exemplo-api.com/dados?key=${AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho}`;
+    // Este é um URL de exemplo. Você deve substituí-lo pelo URL da API que
+    // você quer usar. O `key=${apiKey}` é um exemplo de como passar a chave
+    // na URL. Isso pode variar dependendo da API.
+    const apiUrl = `https://exemplo-api.com/dados?key=${apiKey}`;
 
     // Atualiza a interface do usuário para mostrar que a busca está em andamento.
     document.getElementById('result').textContent = 'Buscando dados...';
 
     try {
-        // Realiza a requisição fetch.
+        // Realiza a requisição usando `fetch`.
         const response = await fetch(apiUrl);
         
-        // Lança um erro se a resposta não for bem-sucedida (status code 4xx ou 5xx).
+        // Se a resposta não for OK, lança um erro.
         if (!response.ok) {
             throw new Error(`Erro de rede: ${response.status}`);
         }
 
-        // Converte o corpo da resposta para o formato JSON.
+        // Converte a resposta para JSON.
         const data = await response.json();
         
-        // Exibe os dados JSON formatados na interface do usuário.
+        // Exibe os dados formatados na interface.
         document.getElementById('result').textContent = JSON.stringify(data, null, 2);
 
     } catch (error) {
-        // Captura e exibe qualquer erro que ocorra durante a requisição.
+        // Captura e exibe erros de conexão ou da API.
         document.getElementById('result').textContent = `Falha ao buscar os dados: ${error.message}`;
         console.error('Erro:', error);
     }
 }
 
-// Adiciona um evento de clique ao botão com o ID "fetchButton".
-// Quando o botão é clicado, a função fetchData é executada.
+// Adiciona um listener de evento ao botão com ID "fetchButton".
 document.getElementById('fetchButton').addEventListener('click', fetchData);
