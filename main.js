@@ -6,7 +6,7 @@ function initMap() {
   });
 
   const infoWindow = new google.maps.InfoWindow();
-  const markers = window.usuarios.map(usuario => {
+  const markers = usuarios.map(usuario => {
     const marker = new google.maps.Marker({
       position: { lat: usuario.latitude, lng: usuario.longitude },
       icon: usuario.icone,
