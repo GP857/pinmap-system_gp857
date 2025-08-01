@@ -18,7 +18,7 @@ async function fetchData() {
     // Exemplo de URL de API com a chave como parâmetro.
     // A forma correta de usar a chave (na URL, no cabeçalho, etc.)
     // depende da API específica que você está utilizando.
-    const apiUrl = `https://exemplo-api.com/dados?key=${apiKey}`;
+    const apiUrl = `https://exemplo-api.com/dados?key=${AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho}`;
 
     // Atualiza a interface do usuário para mostrar que a busca está em andamento.
     document.getElementById('result').textContent = 'Buscando dados...';
