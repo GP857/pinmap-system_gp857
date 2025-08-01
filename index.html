@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exemplo de Chave de API</title>
+    <title>Exemplo de Arquivos Separados</title>
     <!-- Inclui o Tailwind CSS para estilização rápida e responsiva -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -20,7 +20,7 @@
             Exemplo de Requisição de API
         </h1>
         <p class="text-gray-600 mb-6">
-            Pressione o botão para buscar dados de uma API usando a chave fornecida.
+            Pressione o botão para buscar dados de uma API usando a chave fornecida no arquivo main.js.
         </p>
 
         <!-- Botão para acionar a chamada da API -->
@@ -34,55 +34,11 @@
         </div>
     </div>
 
-    <script>
-        // --- LOCAL ONDE VOCÊ INSERE A CHAVE DE API ---
-        // ATENÇÃO: Esta forma só é segura se o seu repositório for privado!
-        // Não inclua sua chave aqui se o código for público.
-        const apiKey = AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho;
-
-        // --- EXERCÍCIO: EXPLICANDO COMO USAR A CHAVE ---
-
-        // Função assíncrona para buscar dados da API
-        async function fetchData() {
-            // Verifica se a chave de API foi inserida
-            if (apiKey === AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho) {
-                document.getElementById('result').textContent = 'Erro: Por favor, insira sua chave de API no código.';
-                return;
-            }
-            
-            // Exemplo de URL de API com a chave como parâmetro
-            // A forma de usar a chave (seja na URL, no cabeçalho, etc.)
-            // depende da documentação da API que você está usando.
-            const apiUrl = `https://exemplo-api.com/dados?key=${apiKey}`;
-
-            // Mensagem de carregamento enquanto a requisição está sendo feita
-            document.getElementById('result').textContent = 'Buscando dados...';
-
-            try {
-                // Realiza a requisição
-                const response = await fetch(apiUrl);
-                
-                // Verifica se a resposta foi bem-sucedida
-                if (!response.ok) {
-                    throw new Error(`Erro de rede: ${response.status}`);
-                }
-
-                // Converte a resposta para JSON
-                const data = await response.json();
-                
-                // Exibe os dados no elemento de resultado
-                document.getElementById('result').textContent = JSON.stringify(data, null, 2);
-
-            } catch (error) {
-                // Em caso de erro, exibe a mensagem de erro
-                document.getElementById('result').textContent = `Falha ao buscar os dados: ${error.message}`;
-                console.error('Erro:', error);
-            }
-        }
-
-        // Adiciona um evento de clique ao botão para chamar a função fetchData
-        document.getElementById('fetchButton').addEventListener('click', fetchData);
-    </script>
+    <!--
+        Esta linha é crucial! Ela referencia o seu arquivo de script externo.
+        Certifique-se de que o nome do arquivo aqui corresponda ao nome do seu arquivo JavaScript.
+    -->
+    <script src="main.js"></script>
 
 </body>
 </html>
