@@ -1,44 +1,51 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exemplo de Arquivos Separados</title>
-    <!-- Inclui o Tailwind CSS para estilização rápida e responsiva -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
+// main.js
+
+// --- LOCAL ONDE VOCÊ INSERE A CHAVE DE API ---
+// ATENÇÃO: Esta forma só é segura se o seu repositório for privado!
+// Não inclua sua chave aqui se o código for público.
+const apiKey = AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho;
+
+/**
+ * Função assíncrona para buscar dados de uma API usando a chave fornecida.
+ */
+async function fetchData() {
+    // Verifica se a chave de API foi inserida
+    if (apiKey === AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho) {
+        document.getElementById('result').textContent = 'Erro: Por favor, insira sua chave de API no arquivo main.js.';
+        return;
+    }
+    
+    // Exemplo de URL de API com a chave como parâmetro.
+    // A forma correta de usar a chave (na URL, no cabeçalho, etc.)
+    // depende da API específica que você está utilizando.
+    const apiUrl = `https://exemplo-api.com/dados?key=${apiKey}`;
+
+    // Atualiza a interface do usuário para mostrar que a busca está em andamento.
+    document.getElementById('result').textContent = 'Buscando dados...';
+
+    try {
+        // Realiza a requisição fetch.
+        const response = await fetch(apiUrl);
+        
+        // Lança um erro se a resposta não for bem-sucedida (status code 4xx ou 5xx).
+        if (!response.ok) {
+            throw new Error(`Erro de rede: ${response.status}`);
         }
-    </style>
-</head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
 
-    <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-lg text-center">
-        <h1 class="text-2xl font-bold mb-4 text-gray-800">
-            Exemplo de Requisição de API
-        </h1>
-        <p class="text-gray-600 mb-6">
-            Pressione o botão para buscar dados de uma API usando a chave fornecida no arquivo main.js.
-        </p>
+        // Converte o corpo da resposta para o formato JSON.
+        const data = await response.json();
+        
+        // Exibe os dados JSON formatados na interface do usuário.
+        document.getElementById('result').textContent = JSON.stringify(data, null, 2);
 
-        <!-- Botão para acionar a chamada da API -->
-        <button id="fetchButton" class="bg-indigo-600 text-white font-medium py-3 px-6 rounded-xl hover:bg-indigo-700 transition-colors duration-200 shadow-md">
-            Buscar Dados
-        </button>
+    } catch (error) {
+        // Captura e exibe qualquer erro que ocorra durante a requisição.
+        document.getElementById('result').textContent = `Falha ao buscar os dados: ${error.message}`;
+        console.error('Erro:', error);
+    }
+}
 
-        <!-- Área para exibir o resultado da API -->
-        <div id="result" class="mt-8 p-4 bg-gray-50 rounded-xl text-gray-700 text-left whitespace-pre-wrap">
-            Nenhum dado exibido ainda.
-        </div>
-    </div>
+// Adiciona um evento de clique ao botão com o ID "fetchButton".
+// Quando o botão é clicado, a função fetchData é executada.
+document.getElementById('fetchButton').addEventListener('click', fetchData);
 
-    <!--
-        Esta linha é crucial! Ela referencia o seu arquivo de script externo.
-        Certifique-se de que o nome do arquivo aqui corresponda ao nome do seu arquivo JavaScript.
-    -->
-    <script src="main.js"></script>
-
-</body>
-</html>
