@@ -1,6 +1,7 @@
 // dados.js
 const locations = [
     
+  {
     "nome": "Aline Tortosa",
     "cidade": "Campinas",
     "estado": "SP",
