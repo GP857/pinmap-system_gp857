@@ -64,6 +64,27 @@
         font-size: 0.9em;
         color: #555;
       }
+      /* Estilo para o modal de mensagem */
+      #message-modal {
+          display: none; /* Escondido por padrão */
+          position: fixed;
+          inset: 0; /* Cobre toda a janela */
+          background-color: rgba(0, 0, 0, 0.5); /* Fundo semi-transparente */
+          align-items: center;
+          justify-content: center;
+          z-index: 50;
+      }
+      #message-modal > div {
+          background-color: white;
+          padding: 24px;
+          border-radius: 8px;
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+          max-width: 400px;
+          width: 90%;
+      }
+      .hidden {
+          display: none !important;
+      }
     </style>
   </head>
   <body>
@@ -81,8 +102,58 @@
         <label id="radius-label">Raio de busca: 30 km (padrão)</label>
       </div>
     </div>
+    
+    <!-- Modal de Mensagem Personalizado -->
+    <div id="message-modal" class="hidden">
+        <div>
+            <h3 id="message-title" class="font-bold text-lg mb-2"></h3>
+            <p id="message-content" class="text-sm text-gray-700 mb-4"></p>
+            <div style="display: flex; justify-content: flex-end;">
+                <button onclick="document.getElementById('message-modal').classList.add('hidden')"
+                        style="padding: 8px 16px; background-color: #2196F3; color: white; border-radius: 4px; border: none; cursor: pointer;">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
 
-    <script src="./dados.js"></script>
+    <!-- Dados de exemplo para resolver o erro "locations is not defined" -->
+    <script>
+      const locations = [
+          {
+              "id": "1",
+              "nome": "Supermercado A",
+              "latitude": -23.5489,
+              "longitude": -46.6388,
+              "localizacao": "Rua Augusta, São Paulo",
+              "cidade": "campinas"
+          },
+          {
+              "id": "2",
+              "nome": "Padaria B",
+              "latitude": -23.5510,
+              "longitude": -46.6345,
+              "localizacao": "Avenida Paulista, São Paulo",
+              "cidade": "campinas"
+          },
+          {
+              "id": "3",
+              "nome": "Farmácia C",
+              "latitude": -23.5600,
+              "longitude": -46.6300,
+              "localizacao": "Rua Haddock Lobo, São Paulo",
+              "cidade": "sao paulo"
+          },
+          {
+              "id": "4",
+              "nome": "Shopping D",
+              "latitude": -23.5420,
+              "longitude": -46.6210,
+              "localizacao": "Rua da Consolação, São Paulo",
+              "cidade": "campinas"
+          }
+      ];
+    </script>
 
     <script>
       let map;
@@ -92,6 +163,19 @@
       let userCity = "";
       let userLocationCoords = null;
       const DEFAULT_SEARCH_RADIUS_KM = 30;
+      
+      // Cria uma variável segura para os dados de localização, evitando o ReferenceError
+      const locationsData = typeof locations !== 'undefined' && Array.isArray(locations) ? locations : [];
+      if (locationsData.length === 0) {
+          console.error("Erro: A array 'locations' do arquivo 'dados.js' não foi encontrada ou está vazia. O mapa será iniciado sem os marcadores de dados do usuário.");
+      }
+      
+      // Função para exibir um modal de mensagem personalizado
+      function showMessage(title, content) {
+          document.getElementById('message-title').innerText = title;
+          document.getElementById('message-content').innerText = content;
+          document.getElementById('message-modal').classList.remove('hidden');
+      }
 
       // Esta função será chamada SOMENTE depois que a API do Google Maps estiver completamente carregada.
       async function initMap() {
@@ -205,29 +289,29 @@
                                 if (cityComponent) {
                                     userCity = cityComponent.long_name;
                                     console.log("Cidade do usuário: ", userCity);
-                                    alert(`Você está em: ${userCity} (Lat: ${pos.lat.toFixed(4)}, Lng: ${pos.lng.toFixed(4)})`);
+                                    showMessage("Sua Localização", `Você está em: ${userCity} (Lat: ${pos.lat.toFixed(4)}, Lng: ${pos.lng.toFixed(4)})`);
                                 } else {
                                     userCity = "";
-                                    alert(`Você está em: Lat: ${pos.lat.toFixed(4)}, Lng: ${pos.lng.toFixed(4)} (Cidade não detectada)`);
+                                    showMessage("Sua Localização", `Você está em: Lat: ${pos.lat.toFixed(4)}, Lng: ${pos.lng.toFixed(4)} (Cidade não detectada)`);
                                 }
                             } else {
                                 userCity = "";
-                                alert(`Você está em: Lat: ${pos.lat.toFixed(4)}, Lng: ${pos.lng.toFixed(4)} (Cidade não encontrada)`);
+                                showMessage("Sua Localização", `Você está em: Lat: ${pos.lat.toFixed(4)}, Lng: ${pos.lng.toFixed(4)} (Cidade não encontrada)`);
                             }
                         } catch (error) {
                             console.error("Erro ao obter cidade do usuário via Geocoding: ", error);
                             userCity = "";
-                            alert(`Você está em: Lat: ${pos.lat.toFixed(4)}, Lng: ${pos.lng.toFixed(4)} (Erro ao obter cidade)`);
+                            showMessage("Sua Localização", `Você está em: Lat: ${pos.lat.toFixed(4)}, Lng: ${pos.lng.toFixed(4)} (Erro ao obter cidade)`);
                         }
                     },
                     (error) => {
                         console.error("Erro ao obter localização: ", error);
-                        alert("Não foi possível obter sua localização. Por favor, permita o acesso à localização no seu navegador.");
+                        showMessage("Erro de Localização", "Não foi possível obter sua localização. Por favor, permita o acesso à localização no seu navegador.");
                     },
                     { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
                 );
             } else {
-                alert("Geolocalização não é suportada por este navegador.");
+                showMessage("Erro de Localização", "Geolocalização não é suportada por este navegador.");
             }
         }
 
@@ -237,7 +321,6 @@
 
         clearButton.addEventListener('click', clearSearch);
         searchInput.addEventListener('keypress', (e) => {
-            // Verifica se a tecla pressionada é 'Enter' (código 13 para compatibilidade mais antiga, embora e.key seja preferível)
             if (e.key === 'Enter' || e.keyCode === 13) {
                 performCommerceSearch();
             }
@@ -255,7 +338,9 @@
             commerceMarkers.forEach(m => m.map = null);
             commerceMarkers = [];
             
-            const service = new google.maps.places.PlacesService(map);
+            const { PlacesService } = await google.maps.importLibrary('places');
+            const service = new PlacesService(map);
+            
             const request = {
                 query: searchTerm,
                 location: userLocationCoords ? new google.maps.LatLng(userLocationCoords.lat, userLocationCoords.lng) : map.getCenter(),
@@ -300,7 +385,7 @@
                     const targetCityForFilter = "campinas"; 
                     const applyCityFilter = userCityLower === targetCityForFilter;
 
-                    locations.forEach(user => {
+                    locationsData.forEach(user => {
                         const userIsInTargetCity = user.cidade && user.cidade.toLowerCase() === targetCityForFilter;
 
                         const isNearAnyCommerce = foundCommerces.some(commerce => {
@@ -324,17 +409,20 @@
                     } else {
                         searchMessage += ` ${usersToDisplay.length} usuários encontrados próximos aos comércios ${applyCityFilter ? `e na cidade de ${userCity}` : ''}.`;
                     }
-                    alert(searchMessage);
+                    showMessage("Resultados da Busca", searchMessage);
 
+                } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+                    showMessage("Resultados da Busca", `Nenhum comércio "${searchTerm}" encontrado. Por favor, tente refinar a busca.`);
+                    clearSearch();
                 } else {
-                    alert(`Não foi possível encontrar comércios "${searchTerm}". Por favor, tente refinar a busca.`);
+                    showMessage("Erro na Busca", `Erro na busca: ${status}. Por favor, verifique se a Places API está habilitada na sua chave de API.`);
                     clearSearch();
                 }
             });
         }
 
         function clearSearch() {
-            searchInput.value = ''; // Esta linha deve limpar o campo de texto
+            searchInput.value = '';
             commerceMarkers.forEach(m => m.map = null);
             commerceMarkers = [];
             
@@ -345,21 +433,20 @@
                 userCity = "";
             }
             
-            displayMarkers(locations);
+            displayMarkers(locationsData);
             map.setZoom(5);
             map.setCenter({ lat: -23.5505, lng: -46.6333 });
         }
 
-        displayMarkers(locations);
+        displayMarkers(locationsData);
       } // Fim da função initMap()
 
       // --- Carregamento Dinâmico da API do Google Maps ---
-      // A função para carregar o script da API de forma dinâmica
       function loadGoogleMapsAPI() {
           const script = document.createElement('script');
-          script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho&v=weekly&libraries=maps,marker,places,geocoding`; // <-- Sua chave aqui!
-          script.async = true; // Carregamento assíncrono
-          script.defer = true; // Carregamento adiado
+          script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho&v=weekly&libraries=maps,marker,places,geocoding`;
+          script.async = true; 
+          script.defer = true;
 
           script.onload = () => {
               console.log("Google Maps API carregada com sucesso!");
@@ -368,13 +455,12 @@
 
           script.onerror = (e) => {
               console.error("Erro ao carregar a Google Maps API:", e);
-              alert("Não foi possível carregar o mapa. Verifique sua conexão ou chave de API.");
+              showMessage("Erro de API", "Não foi possível carregar o mapa. Verifique sua conexão ou chave de API.");
           };
 
           document.head.appendChild(script);
       }
 
-      // Garante que o DOM esteja completamente carregado antes de tentar adicionar o script da API
       document.addEventListener('DOMContentLoaded', loadGoogleMapsAPI);
 
     </script>
