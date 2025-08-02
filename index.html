@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Mapa com Localização e Busca Aprimorada (V9)</title>
+    <title>Mapa com Localização e Busca Aprimorada (V17)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
       html, body {
@@ -85,6 +85,20 @@
       .hidden {
           display: none !important;
       }
+      #loading-overlay {
+          display: none;
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(255, 255, 255, 0.7);
+          z-index: 100;
+          justify-content: center;
+          align-items: center;
+          font-size: 1.5em;
+          color: #333;
+      }
     </style>
   </head>
   <body>
@@ -102,6 +116,11 @@
         <label id="radius-label">Raio de busca: 30 km (padrão)</label>
       </div>
     </div>
+
+    <!-- Loading overlay -->
+    <div id="loading-overlay" class="hidden">
+        A carregar...
+    </div>
     
     <!-- Modal de Mensagem Personalizado -->
     <div id="message-modal" class="hidden">
@@ -117,8 +136,10 @@
         </div>
     </div>
 
-    <!-- Dados de exemplo para resolver o erro "locations is not defined" -->
     <script>
+      // ----------------------------------------------------------------------------------
+      // ATENÇÃO: SUBSTITUA ESTE CONJUNTO DE DADOS DE EXEMPLO PELO SEU PRÓPRIO CONTEÚDO
+      // ----------------------------------------------------------------------------------
       const locations = [
           {
               "id": "1",
@@ -153,6 +174,9 @@
               "cidade": "campinas"
           }
       ];
+      // ----------------------------------------------------------------------------------
+      // FIM DOS DADOS DE EXEMPLO
+      // ----------------------------------------------------------------------------------
     </script>
 
     <script>
@@ -166,7 +190,7 @@
       
       const locationsData = typeof locations !== 'undefined' && Array.isArray(locations) ? locations : [];
       if (locationsData.length === 0) {
-          console.error("Erro: A array 'locations' do arquivo 'dados.js' não foi encontrada ou está vazia. O mapa será iniciado sem os marcadores de dados do usuário.");
+          console.error("Erro: A array 'locations' não foi encontrada ou está vazia.");
       }
       
       function showMessage(title, content) {
@@ -175,10 +199,15 @@
           document.getElementById('message-modal').classList.remove('hidden');
       }
 
+      function showLoading(show) {
+          document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
+      }
+
       async function initMap() {
         const { Map, InfoWindow } = await google.maps.importLibrary("maps");
         const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
         const { Geocoder } = await google.maps.importLibrary("geocoding");
+        const { PlacesService } = await google.maps.importLibrary("places");
         
         map = new Map(document.getElementById("map"), {
           center: { lat: -23.5505, lng: -46.6333 }, // Centraliza em São Paulo, Brasil
@@ -192,6 +221,7 @@
         });
 
         const geocoder = new Geocoder();
+        const placesService = new PlacesService(map);
 
         function getDistance(lat1, lon1, lat2, lon2) {
             const R = 6371;
@@ -210,36 +240,37 @@
             markerCluster.clearMarkers();
           }
 
-          if (typeof dataArray !== 'undefined' && Array.isArray(dataArray)) {
-              const currentMarkers = dataArray.map((data) => {
-                const label = data.nome ? data.nome[0].toUpperCase() : '';
-                const pinGlyph = new PinElement({
-                  glyph: label,
-                  glyphColor: "white",
-                });
+          if (!dataArray || dataArray.length === 0) {
+            console.warn("Nenhum dado para exibir marcadores.");
+            return;
+          }
 
-                const marker = new AdvancedMarkerElement({
-                  position: { lat: data.latitude, lng: data.longitude },
-                  content: pinGlyph.element,
-                  title: data.nome
-                });
+          const currentMarkers = dataArray.map((data) => {
+            const label = data.nome ? data.nome[0].toUpperCase() : '';
+            const pinGlyph = new PinElement({
+              glyph: label,
+              glyphColor: "white",
+            });
 
-                marker.addListener("click", () => {
-                  infoWindow.setContent(`<h3>${data.nome}</h3><p>${data.localizacao}</p><p>ID: ${data.id}</p>`);
-                  infoWindow.open(map, marker);
-                });
+            const marker = new AdvancedMarkerElement({
+              position: { lat: data.latitude, lng: data.longitude },
+              content: pinGlyph.element,
+              title: data.nome
+            });
 
-                return marker;
-              });
+            marker.addListener("click", () => {
+              infoWindow.setContent(`<h3>${data.nome}</h3><p>${data.localizacao}</p><p>ID: ${data.id}</p>`);
+              infoWindow.open(map, marker);
+            });
 
-              if (typeof markerClusterer !== 'undefined' && typeof markerClusterer.MarkerClusterer !== 'undefined') {
-                  markerCluster = new markerClusterer.MarkerClusterer({ markers: currentMarkers, map });
-                  console.log(`Total de pontos de usuário exibidos: ${dataArray.length}. Clusters aplicados.`);
-              } else {
-                  console.error("Erro: MarkerClusterer não foi carregado corretamente ou não está acessível como 'markerClusterer.MarkerClusterer'.");
-              }
+            return marker;
+          });
+
+          if (typeof markerClusterer !== 'undefined' && typeof markerClusterer.MarkerClusterer !== 'undefined') {
+              markerCluster = new markerClusterer.MarkerClusterer({ markers: currentMarkers, map });
+              console.log(`Total de pontos de usuário exibidos: ${dataArray.length}. Clusters aplicados.`);
           } else {
-              console.error("A array de dados para marcadores não foi carregada ou não é uma array válida.");
+              console.error("Erro: MarkerClusterer não foi carregado corretamente ou não está acessível como 'markerClusterer.MarkerClusterer'.");
           }
         }
 
@@ -247,9 +278,11 @@
         myLocationButton.addEventListener('click', findMyLocation);
 
         function findMyLocation() {
+            showLoading(true);
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     async (position) => {
+                        showLoading(false);
                         const pos = {
                             lat: position.coords.latitude,
                             lng: position.coords.longitude,
@@ -258,7 +291,6 @@
 
                         if (userLocationMarker) {
                             userLocationMarker.map = null;
-                            userLocationMarker = null;
                         }
 
                         const userPinGlyph = new PinElement({
@@ -282,14 +314,8 @@
                                 const cityComponent = response.results[0].address_components.find(
                                     comp => comp.types.includes("locality") || comp.types.includes("administrative_area_level_2")
                                 );
-                                if (cityComponent) {
-                                    userCity = cityComponent.long_name;
-                                    console.log("Cidade do usuário: ", userCity);
-                                    showMessage("Sua Localização", `Você está em: ${userCity} (Lat: ${pos.lat.toFixed(4)}, Lng: ${pos.lng.toFixed(4)})`);
-                                } else {
-                                    userCity = "";
-                                    showMessage("Sua Localização", `Você está em: Lat: ${pos.lat.toFixed(4)}, Lng: ${pos.lng.toFixed(4)} (Cidade não detetada)`);
-                                }
+                                userCity = cityComponent ? cityComponent.long_name : "";
+                                showMessage("Sua Localização", `Você está em: ${userCity || 'Cidade não detetada'} (Lat: ${pos.lat.toFixed(4)}, Lng: ${pos.lng.toFixed(4)})`);
                             } else {
                                 userCity = "";
                                 showMessage("Sua Localização", `Você está em: Lat: ${pos.lat.toFixed(4)}, Lng: ${pos.lng.toFixed(4)} (Cidade não encontrada)`);
@@ -301,12 +327,29 @@
                         }
                     },
                     (error) => {
-                        console.error("Erro ao obter localização: ", error);
-                        showMessage("Erro de Localização", "Não foi possível obter a sua localização. Por favor, permita o acesso à localização no seu navegador.");
+                        showLoading(false);
+                        let errorMessage;
+                        if (error && error.code) { 
+                            if (error.code === error.PERMISSION_DENIED) {
+                                errorMessage = "A permissão para aceder à sua localização foi negada. Por favor, permita o acesso nas definições do seu navegador.";
+                                console.error("Erro ao obter localização: Permissão negada.", error);
+                            } else if (error.code === error.POSITION_UNAVAILABLE) {
+                                errorMessage = "A sua localização não está disponível. Por favor, verifique as suas definições de localização.";
+                                console.error("Erro ao obter localização: Posição indisponível.", error);
+                            } else if (error.code === error.TIMEOUT) {
+                                errorMessage = "O pedido para obter a sua localização expirou. Por favor, tente novamente.";
+                                console.error("Erro ao obter localização: Tempo esgotado.", error);
+                            }
+                        } else {
+                            errorMessage = "Ocorreu um erro desconhecido ao tentar obter a sua localização. Por favor, verifique a sua conexão ou tente novamente mais tarde.";
+                            console.error("Erro ao obter localização: O navegador não forneceu um código de erro específico.", error);
+                        }
+                        showMessage("Erro de Localização", errorMessage);
                     },
                     { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
                 );
             } else {
+                showLoading(false);
                 showMessage("Erro de Localização", "Geolocalização não é suportada por este navegador.");
             }
         }
@@ -321,7 +364,6 @@
             }
         });
         
-        // Nova função que executa a busca inteligente
         async function performSmartSearch() {
             const searchTerm = searchInput.value.trim();
             if (!searchTerm) {
@@ -329,48 +371,42 @@
                 return;
             }
 
-            // Etapa 1: Tentar traduzir a busca para uma localização geográfica (país, cidade, etc.)
+            showLoading(true);
+
+            // Etapa 1: Tentar traduzir a busca para uma localização geográfica
             try {
                 const geoResponse = await geocoder.geocode({ address: searchTerm });
 
                 if (geoResponse.results && geoResponse.results.length > 0) {
-                    // Se o termo de busca é uma localização, usamos essa localização como o centro
                     const location = geoResponse.results[0].geometry.location;
                     map.setCenter(location);
                     map.setZoom(12);
                     
-                    // Mostra uma mensagem de que a busca foi redirecionada
-                    showMessage("Busca por Local", `Redirecionando o mapa para: ${geoResponse.results[0].formatted_address}. Agora a busca será feita nessa área.`);
+                    showMessage("Busca por Local", `Redirecionando o mapa para: ${geoResponse.results[0].formatted_address}. A busca por comércios será feita nessa área.`);
                     
                     // Efetua a busca por comércios na nova localização
                     performCommerceSearch(searchTerm, location);
 
                 } else {
-                    // Se o termo não for uma localização, tentamos procurar comércios
-                    // com base na localização do utilizador
-                    let searchCenter = map.getCenter();
-                    if (userLocationCoords) {
-                        searchCenter = new google.maps.LatLng(userLocationCoords.lat, userLocationCoords.lng);
-                    } else {
+                    // Se não for uma localização, usa o local do usuário ou o centro do mapa
+                    let searchCenter = userLocationCoords || map.getCenter();
+                    if (!userLocationCoords) {
                         showMessage("Localização", "A sua localização não foi detetada. A busca por comércio será feita a partir do centro atual do mapa. Para um resultado mais preciso, clique em 'Meu Local' primeiro.");
                     }
                     performCommerceSearch(searchTerm, searchCenter);
                 }
             } catch (error) {
+                showLoading(false);
                 console.error("Erro na busca de geocodificação:", error);
                 showMessage("Erro", "Ocorreu um erro na busca por localização. Verifique a sua conexão.");
             }
         }
 
 
-        async function performCommerceSearch(searchTerm, center) {
+        function performCommerceSearch(searchTerm, center) {
             const searchRadius = DEFAULT_SEARCH_RADIUS_KM;
-
-            commerceMarkers.forEach(m => m.map = null);
+            commerceMarkers.forEach(m => m.setMap(null));
             commerceMarkers = [];
-            
-            const { PlacesService } = await google.maps.importLibrary('places');
-            const service = new PlacesService(map);
             
             const request = {
                 query: searchTerm,
@@ -379,7 +415,8 @@
                 type: ['point_of_interest', 'establishment'],
             };
 
-            service.textSearch(request, (results, status) => {
+            placesService.textSearch(request, (results, status) => {
+                showLoading(false);
                 if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
                     const foundCommerces = [];
                     const bounds = new google.maps.LatLngBounds();
@@ -443,7 +480,8 @@
                     showMessage("Resultados da Busca", searchMessage);
 
                 } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
-                    showMessage("Resultados da Busca", `Nenhum comércio "${searchTerm}" encontrado perto da localização. Por favor, tente refinar a busca.`);
+                    // Esta é a regra principal: se a busca não retorna nada, mostrar todos os pontos novamente.
+                    showMessage("Resultados da Busca", `Nenhum comércio "${searchTerm}" encontrado perto da localização. Exibindo todos os pontos do mapa.`);
                     clearSearch();
                 } else {
                     showMessage("Erro na Busca", `Erro na busca: ${status}. Por favor, verifique se a Places API está habilitada na sua chave de API.`);
@@ -454,11 +492,11 @@
 
         function clearSearch() {
             searchInput.value = '';
-            commerceMarkers.forEach(m => m.map = null);
+            commerceMarkers.forEach(m => m.setMap(null));
             commerceMarkers = [];
             
             if (userLocationMarker) {
-                userLocationMarker.map = null;
+                userLocationMarker.setMap(null);
                 userLocationMarker = null;
                 userLocationCoords = null;
                 userCity = "";
@@ -469,6 +507,7 @@
             map.setCenter({ lat: -23.5505, lng: -46.6333 });
         }
 
+        // Chamar a função de inicialização na ordem correta
         displayMarkers(locationsData);
       } // Fim da função initMap()
 
