@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Mapa com Localização e Busca Aprimorada (V4)</title>
+    <title>Mapa com Localização e Busca Aprimorada (V5)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
       html, body {
@@ -93,7 +93,9 @@
       let userLocationCoords = null;
       const DEFAULT_SEARCH_RADIUS_KM = 30;
 
+      // Define initMap como uma função global (para ser acessada pelo callback da API)
       async function initMap() {
+        // Agora, google.maps já estará disponível aqui!
         const { Map, InfoWindow } = await google.maps.importLibrary("maps");
         const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
         const { Geocoder } = await google.maps.importLibrary("geocoding");
@@ -234,7 +236,6 @@
         const searchInput = document.getElementById('search-input');
         const clearButton = document.getElementById('clear-button');
 
-        // Removido searchButton.addEventListener('click', performCommerceSearch);
         clearButton.addEventListener('click', clearSearch);
         searchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -247,18 +248,13 @@
             const searchRadius = DEFAULT_SEARCH_RADIUS_KM;
 
             if (!searchTerm) {
-                // Se a busca estiver vazia, apenas limpa e mostra todos os usuários
                 clearSearch(); 
                 return;
             }
 
-            // Limpa marcadores de comércio anteriores
             commerceMarkers.forEach(m => m.map = null);
             commerceMarkers = [];
             
-            // Não limpa os marcadores de usuário aqui para evitar o "desaparecimento" temporário
-            // Eles serão filtrados e reexibidos no final.
-
             const service = new google.maps.places.PlacesService(map);
             const request = {
                 query: searchTerm,
@@ -320,19 +316,19 @@
                         }
                     });
                     
-                    displayMarkers(usersToDisplay); // Agora só exibe os usuários filtrados AQUI
+                    displayMarkers(usersToDisplay);
 
                     let searchMessage = `${foundCommerces.length} comércios "${searchTerm}" encontrados.`;
                     if (usersToDisplay.length === 0) {
                         searchMessage += ` Nenhum usuário encontrado próximo aos comércios ${applyCityFilter ? `e na cidade de ${userCity}` : ''}.`;
                     } else {
-                        searchMessage += ` ${usersToDisplay.length} usuários encontrados próximos aos comércios ${applyCityFilter ? `e na cidade de ${userCity}` : ''}.`;
+                        searchMessage += ` ${usersToDisplay.length} usuários encontrados próximos aos comérces ${applyCityFilter ? `e na cidade de ${userCity}` : ''}.`;
                     }
                     alert(searchMessage);
 
                 } else {
                     alert(`Não foi possível encontrar comércios "${searchTerm}". Por favor, tente refinar a busca.`);
-                    clearSearch(); // Volta ao estado inicial se não encontrar nada
+                    clearSearch();
                 }
             });
         }
@@ -349,23 +345,26 @@
                 userCity = "";
             }
             
-            displayMarkers(locations); // Mostra TODOS os pontos de usuário novamente
+            displayMarkers(locations);
             map.setZoom(5);
             map.setCenter({ lat: -23.5505, lng: -46.6333 });
         }
 
         displayMarkers(locations);
-      }
+      } // Fim da função initMap()
 
-      // Bootstrap da API do Google Maps
+      // --- Bootstrap da API do Google Maps ---
+      // Esta é a parte crucial que garante que initMap() é chamada APENAS quando a API está pronta.
+      // O 'callback' no URL do script faz com que 'initMap()' seja executada automaticamente.
       (g => {
-        var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
+        var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
         key: "AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho",
         v: "weekly",
         libraries: ["maps", "marker", "places", "geocoding"],
+        callback: initMap // <--- ESTA É A LINHA MAIS IMPORTANTE DA CORREÇÃO!
       });
 
-      initMap();
+      // Removido a chamada direta initMap(); que causava o erro.
     </script>
 
     <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
