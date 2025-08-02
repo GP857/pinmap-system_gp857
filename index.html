@@ -1,8 +1,14 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Mapa com Localização e Busca Simples (V19)</title>
+    <title>Mapa com Localização e Busca Simples</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      Este script importa os dados de localização do seu arquivo 'dados.js'
+      no repositório do GitHub. A variável 'locations' será globalmente
+      acessível após este carregamento.
+    -->
+    <script src="https://raw.githubusercontent.com/jrcunha/test-jrcunha-dev-googlemaps-v3/main/js/dados.js"></script>
     <style>
       html, body {
         height: 100%;
@@ -134,164 +140,19 @@
     </div>
 
     <script>
-      // ----------------------------------------------------------------------------------
-      // ESTES SAO OS SEUS DADOS, INSERIDOS NO CODIGO.
-      // ----------------------------------------------------------------------------------
-      const locations = [
-          {
-            "id": 1,
-            "nome": "Juliane Ap. Cyrilo Cunha",
-            "cidade": "Paulínia",
-            "estado": "SP",
-            "latitude": -22.744338,
-            "longitude": -47.1767203,
-            "cep": "13145352",
-            "pais": "Brasil",
-            "localizacao": "Paulínia, SP, Brasil",
-            "descricao": "Usuário da cidade de Paulínia.",
-            "link": "https://www.google.com/maps/search/?api=1&query=-22.744338,-47.1767203",
-            "icone": "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
-          },
-          {
-            "id": 2,
-            "nome": "João Paulo de Moraes",
-            "cidade": "Campinas",
-            "estado": "SP",
-            "latitude": -22.9320985,
-            "longitude": -47.0762548,
-            "cep": "13050008",
-            "pais": "Brasil",
-            "localizacao": "Campinas, SP, Brasil",
-            "descricao": "Usuário da cidade de Campinas.",
-            "link": "https://www.google.com/maps/search/?api=1&query=-22.9320985,-47.0762548",
-            "icone": "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
-          },
-          {
-            "id": 3,
-            "nome": "Lucas Cunha",
-            "cidade": "Campinas",
-            "estado": "SP",
-            "latitude": -22.8533533,
-            "longitude": -47.0469649,
-            "cep": "13087500",
-            "pais": "Brasil",
-            "localizacao": "Campinas, SP, Brasil",
-            "descricao": "Usuário da cidade de Campinas.",
-            "link": "https://www.google.com/maps/search/?api=1&query=-22.8533533,-47.0469649",
-            "icone": "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
-          },
-          {
-            "id": 4,
-            "nome": "Aline Tortosa",
-            "cidade": "Campinas",
-            "estado": "SP",
-            "latitude": -22.9421519,
-            "longitude": -47.0230088,
-            "cep": "13045260",
-            "pais": "Brasil",
-            "localizacao": "Campinas, SP, Brasil",
-            "descricao": "Usuário da cidade de Campinas.",
-            "link": "https://www.google.com/maps/search/?api=1&query=-22.9421519,-47.0230088",
-            "icone": "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
-          },
-          {
-            "id": 5,
-            "nome": "Alexx Amatuzzi",
-            "cidade": "Valinhos",
-            "estado": "SP",
-            "latitude": -22.9772,
-            "longitude": -46.989,
-            "cep": "13322020",
-            "pais": "Brasil",
-            "localizacao": "Valinhos, SP, Brasil",
-            "descricao": "Usuário da cidade de Valinhos.",
-            "link": "https://www.google.com/maps/search/?api=1&query=-22.9772,-46.989",
-            "icone": "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
-          },
-          {
-            "id": 6,
-            "nome": "Ricardo Augusto Costa Raven",
-            "cidade": "Hortolândia",
-            "estado": "SP",
-            "latitude": -22.8862883,
-            "longitude": -47.2013605,
-            "cep": "13186635",
-            "pais": "Brasil",
-            "localizacao": "Hortolândia, SP, Brasil",
-            "descricao": "Usuário da cidade de Hortolândia.",
-            "link": "https://www.google.com/maps/search/?api=1&query=-22.8862883,-47.2013605",
-            "icone": "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
-          },
-          {
-            "id": 7,
-            "nome": "Carlos Eduardo Pereira de Souza",
-            "cidade": "Campinas",
-            "estado": "SP",
-            "latitude": -22.9826214,
-            "longitude": -47.1202832,
-            "cep": "13054421",
-            "pais": "Brasil",
-            "localizacao": "Campinas, SP, Brasil",
-            "descricao": "Usuário da cidade de Campinas.",
-            "link": "https://www.google.com/maps/search/?api=1&query=-22.9826214,-47.1202832",
-            "icone": "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
-          },
-          {
-            "id": 8,
-            "nome": "Adrian Roberto Chiminazzo",
-            "cidade": "Valinhos",
-            "estado": "SP",
-            "latitude": -22.9813643,
-            "longitude": -46.9938373,
-            "cep": "13276409",
-            "pais": "Brasil",
-            "localizacao": "Valinhos, SP, Brasil",
-            "descricao": "Usuário da cidade de Valinhos.",
-            "link": "https://www.google.com/maps/search/?api=1&query=-22.9813643,-46.9938373",
-            "icone": "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
-          },
-          {
-            "id": 9,
-            "nome": "Roberta Dos Santos Silva",
-            "cidade": "Campinas",
-            "estado": "SP",
-            "latitude": -22.9710829,
-            "longitude": -47.1572759,
-            "cep": "13056204",
-            "pais": "Brasil",
-            "localizacao": "Campinas, SP, Brasil",
-            "descricao": "Usuário da cidade de Campinas.",
-            "link": "https://www.google.com/maps/search/?api=1&query=-22.9710829,-47.1572759",
-            "icone": "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
-          },
-          {
-            "id": 10,
-            "nome": "Ingryd Micheli Breg",
-            "cidade": "Limeira",
-            "estado": "SP",
-            "latitude": -22.5571965,
-            "longitude": -47.3772316,
-            "cep": "13486333",
-            "pais": "Brasil",
-            "localizacao": "Limeira, SP, Brasil",
-            "descricao": "Usuário da cidade de Limeira.",
-            "link": "https://www.google.com/maps/search/?api=1&query=-22.5571965,-47.3772316",
-            "icone": "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
-           }
-      ];
-      // ----------------------------------------------------------------------------------
-      // FIM DOS DADOS
-      // ----------------------------------------------------------------------------------
-    </script>
-
-    <script>
       let map;
       let markerCluster;
       let userLocationMarker = null;
       let userLocationCoords = null;
+      
+      // A variável `locations` é carregada a partir do script externo no <head>.
+      // Verificamos se ela existe e é um array.
       const locationsData = typeof locations !== 'undefined' && Array.isArray(locations) ? locations : [];
       if (locationsData.length === 0) {
-          console.error("Erro: A array 'locations' não foi encontrada ou está vazia.");
+          console.warn("Aviso: A array 'locations' está vazia. O mapa será exibido sem pontos de utilizador.");
+          showMessage("Dados de Localização", "A lista de localizações está vazia ou não foi carregada corretamente. O mapa será exibido sem os pontos de utilizador.");
+      } else {
+          console.log(`Carregado com sucesso ${locationsData.length} pontos de utilizador.`);
       }
 
       function showMessage(title, content) {
@@ -305,176 +166,179 @@
       }
 
       async function initMap() {
-        const { Map, InfoWindow } = await google.maps.importLibrary("maps");
-        const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
-        const { Geocoder } = await google.maps.importLibrary("geocoding");
-        
-        map = new Map(document.getElementById("map"), {
-          center: { lat: -23.5505, lng: -46.6333 }, // Centraliza em São Paulo, Brasil
-          zoom: 5,
-          mapId: "DEMO_MAP_ID",
-        });
-
-        const infoWindow = new InfoWindow({
-          content: "",
-          disableAutoPan: true,
-        });
-
-        const geocoder = new Geocoder();
-
-        function displayMarkers(dataArray) {
-          if (markerCluster) {
-            markerCluster.clearMarkers();
-          }
-
-          if (!dataArray || dataArray.length === 0) {
-            console.warn("Nenhum dado para exibir marcadores.");
-            return;
-          }
-
-          const currentMarkers = dataArray.map((data) => {
-            const label = data.nome ? data.nome[0].toUpperCase() : '';
-            const pinGlyph = new PinElement({
-              glyph: label,
-              glyphColor: "white",
-            });
-
-            const marker = new AdvancedMarkerElement({
-              position: { lat: data.latitude, lng: data.longitude },
-              content: pinGlyph.element,
-              title: data.nome
-            });
-
-            marker.addListener("click", () => {
-              infoWindow.setContent(`<h3>${data.nome}</h3><p>${data.localizacao}</p><p>ID: ${data.id}</p>`);
-              infoWindow.open(map, marker);
-            });
-
-            return marker;
+        try {
+          const { Map, InfoWindow } = await google.maps.importLibrary("maps");
+          const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
+          
+          map = new Map(document.getElementById("map"), {
+            center: { lat: -22.9068, lng: -47.0616 }, // Centraliza em Campinas, Brasil
+            zoom: 10,
+            mapId: "DEMO_MAP_ID",
           });
 
-          if (typeof markerClusterer !== 'undefined' && typeof markerClusterer.MarkerClusterer !== 'undefined') {
-              markerCluster = new markerClusterer.MarkerClusterer({ markers: currentMarkers, map });
-              console.log(`Total de pontos de usuário exibidos: ${dataArray.length}. Clusters aplicados.`);
-          } else {
-              console.error("Erro: MarkerClusterer não foi carregado corretamente ou não está acessível como 'markerClusterer.MarkerClusterer'.");
+          const infoWindow = new InfoWindow({
+            content: "",
+            disableAutoPan: true,
+          });
+
+          function displayMarkers(dataArray) {
+            if (markerCluster) {
+              markerCluster.clearMarkers();
+            }
+
+            if (!dataArray || dataArray.length === 0) {
+              console.warn("Nenhum dado para exibir marcadores.");
+              return;
+            }
+
+            const currentMarkers = dataArray.map((data) => {
+              const pinGlyph = new PinElement({
+                glyph: String(data.id),
+                glyphColor: "white",
+                background: '#007bff'
+              });
+
+              const marker = new AdvancedMarkerElement({
+                position: { lat: data.latitude, lng: data.longitude },
+                content: pinGlyph.element,
+                title: data.nome
+              });
+
+              marker.addListener("click", () => {
+                infoWindow.setContent(`<h3>${data.nome}</h3><p>${data.localizacao}</p><p>ID: ${data.id}</p><p>${data.descricao}</p>`);
+                infoWindow.open(map, marker);
+              });
+
+              return marker;
+            });
+
+            if (typeof markerClusterer !== 'undefined' && typeof markerClusterer.MarkerClusterer !== 'undefined') {
+                markerCluster = new markerClusterer.MarkerClusterer({ markers: currentMarkers, map });
+                console.log(`Total de pontos de usuário exibidos: ${dataArray.length}. Clusters aplicados.`);
+            } else {
+                console.error("Erro: MarkerClusterer não foi carregado corretamente ou não está acessível como 'markerClusterer.MarkerClusterer'.");
+            }
           }
+
+          const myLocationButton = document.getElementById('my-location-button');
+          myLocationButton.addEventListener('click', findMyLocation);
+
+          function findMyLocation() {
+              showLoading(true);
+              if (navigator.geolocation) {
+                  navigator.geolocation.getCurrentPosition(
+                      async (position) => {
+                          showLoading(false);
+                          const pos = {
+                              lat: position.coords.latitude,
+                              lng: position.coords.longitude,
+                          };
+                          userLocationCoords = pos;
+
+                          if (userLocationMarker) {
+                              userLocationMarker.map = null;
+                          }
+
+                          const userPinGlyph = new PinElement({
+                              background: '#007bff',
+                              borderColor: '#0056b3'
+                          });
+
+                          userLocationMarker = new AdvancedMarkerElement({
+                              map: map,
+                              position: pos,
+                              content: userPinGlyph.element,
+                              title: "Sua Localização Atual"
+                          });
+
+                          map.setCenter(pos);
+                          map.setZoom(15);
+                          showMessage("Sua Localização", `Você está em: Lat: ${pos.lat.toFixed(4)}, Lng: ${pos.lng.toFixed(4)}`);
+                      },
+                      (error) => {
+                          showLoading(false);
+                          let errorMessage;
+                          if (error && error.code) { 
+                              if (error.code === error.PERMISSION_DENIED) {
+                                  errorMessage = "A permissão para aceder à sua localização foi negada. Por favor, permita o acesso nas definições do seu navegador.";
+                              } else if (error.code === error.POSITION_UNAVAILABLE) {
+                                  errorMessage = "A sua localização não está disponível. Por favor, verifique as suas definições de localização.";
+                              } else if (error.code === error.TIMEOUT) {
+                                  errorMessage = "O pedido para obter a sua localização expirou. Por favor, tente novamente.";
+                              }
+                          } else {
+                              errorMessage = "Ocorreu um erro desconhecido ao tentar obter a sua localização. Por favor, verifique a sua conexão ou tente novamente mais tarde.";
+                          }
+                          showMessage("Erro de Localização", errorMessage);
+                      },
+                      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                  );
+              } else {
+                  showLoading(false);
+                  showMessage("Erro de Localização", "Geolocalização não é suportada por este navegador.");
+              }
+          }
+
+          const searchInput = document.getElementById('search-input');
+          const clearButton = document.getElementById('clear-button');
+
+          clearButton.addEventListener('click', clearSearch);
+          searchInput.addEventListener('keypress', (e) => {
+              if (e.key === 'Enter' || e.keyCode === 13) {
+                  performSimpleSearch();
+              }
+          });
+          
+          function performSimpleSearch() {
+              const searchTerm = searchInput.value.trim().toLowerCase();
+              if (!searchTerm) {
+                  clearSearch();
+                  return;
+              }
+
+              const filteredLocations = locationsData.filter(loc => 
+                  loc.nome.toLowerCase().includes(searchTerm) || 
+                  loc.localizacao.toLowerCase().includes(searchTerm) || 
+                  loc.cidade.toLowerCase().includes(searchTerm)
+              );
+              
+              if (filteredLocations.length > 0) {
+                  displayMarkers(filteredLocations);
+                  showMessage("Resultados da Busca", `${filteredLocations.length} pontos encontrados.`);
+              } else {
+                  displayMarkers([]);
+                  showMessage("Resultados da Busca", "Nenhum ponto encontrado com o termo de busca.");
+              }
+          }
+
+          function clearSearch() {
+              searchInput.value = '';
+              
+              if (userLocationMarker) {
+                  userLocationMarker.setMap(null);
+                  userLocationMarker = null;
+                  userLocationCoords = null;
+              }
+              
+              displayMarkers(locationsData);
+              map.setZoom(10);
+              map.setCenter({ lat: -22.9068, lng: -47.0616 });
+              showMessage("Busca Limpa", "Todos os pontos foram restaurados.");
+          }
+
+          // Carregar todos os pontos por padrão
+          displayMarkers(locationsData);
+        } catch (error) {
+          console.error("Erro fatal na inicialização do mapa:", error);
+          showMessage("Erro Crítico", "O mapa não pode ser inicializado. Por favor, verifique a sua chave de API e tente novamente.");
         }
-
-        const myLocationButton = document.getElementById('my-location-button');
-        myLocationButton.addEventListener('click', findMyLocation);
-
-        function findMyLocation() {
-            showLoading(true);
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    async (position) => {
-                        showLoading(false);
-                        const pos = {
-                            lat: position.coords.latitude,
-                            lng: position.coords.longitude,
-                        };
-                        userLocationCoords = pos;
-
-                        if (userLocationMarker) {
-                            userLocationMarker.map = null;
-                        }
-
-                        const userPinGlyph = new PinElement({
-                            background: '#007bff',
-                            borderColor: '#0056b3'
-                        });
-
-                        userLocationMarker = new AdvancedMarkerElement({
-                            map: map,
-                            position: pos,
-                            content: userPinGlyph.element,
-                            title: "Sua Localização Atual"
-                        });
-
-                        map.setCenter(pos);
-                        map.setZoom(15);
-                        showMessage("Sua Localização", `Você está em: Lat: ${pos.lat.toFixed(4)}, Lng: ${pos.lng.toFixed(4)}`);
-                    },
-                    (error) => {
-                        showLoading(false);
-                        let errorMessage;
-                        if (error && error.code) { 
-                            if (error.code === error.PERMISSION_DENIED) {
-                                errorMessage = "A permissão para aceder à sua localização foi negada. Por favor, permita o acesso nas definições do seu navegador.";
-                            } else if (error.code === error.POSITION_UNAVAILABLE) {
-                                errorMessage = "A sua localização não está disponível. Por favor, verifique as suas definições de localização.";
-                            } else if (error.code === error.TIMEOUT) {
-                                errorMessage = "O pedido para obter a sua localização expirou. Por favor, tente novamente.";
-                            }
-                        } else {
-                            errorMessage = "Ocorreu um erro desconhecido ao tentar obter a sua localização. Por favor, verifique a sua conexão ou tente novamente mais tarde.";
-                        }
-                        showMessage("Erro de Localização", errorMessage);
-                    },
-                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-                );
-            } else {
-                showLoading(false);
-                showMessage("Erro de Localização", "Geolocalização não é suportada por este navegador.");
-            }
-        }
-
-        const searchInput = document.getElementById('search-input');
-        const clearButton = document.getElementById('clear-button');
-
-        clearButton.addEventListener('click', clearSearch);
-        searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' || e.keyCode === 13) {
-                performSimpleSearch();
-            }
-        });
-        
-        function performSimpleSearch() {
-            const searchTerm = searchInput.value.trim().toLowerCase();
-            if (!searchTerm) {
-                clearSearch();
-                return;
-            }
-
-            const filteredLocations = locationsData.filter(loc => 
-                loc.nome.toLowerCase().includes(searchTerm) || 
-                loc.localizacao.toLowerCase().includes(searchTerm) || 
-                loc.cidade.toLowerCase().includes(searchTerm)
-            );
-            
-            if (filteredLocations.length > 0) {
-                displayMarkers(filteredLocations);
-                showMessage("Resultados da Busca", `${filteredLocations.length} pontos encontrados.`);
-            } else {
-                displayMarkers([]);
-                showMessage("Resultados da Busca", "Nenhum ponto encontrado com o termo de busca.");
-            }
-        }
-
-        function clearSearch() {
-            searchInput.value = '';
-            
-            if (userLocationMarker) {
-                userLocationMarker.setMap(null);
-                userLocationMarker = null;
-                userLocationCoords = null;
-            }
-            
-            displayMarkers(locationsData);
-            map.setZoom(5);
-            map.setCenter({ lat: -23.5505, lng: -46.6333 });
-            showMessage("Busca Limpa", "Todos os pontos foram restaurados.");
-        }
-
-        // Carregar todos os pontos por padrão
-        displayMarkers(locationsData);
       } // Fim da função initMap()
 
       function loadGoogleMapsAPI() {
           const script = document.createElement('script');
-          // ATENÇÃO: SUBSTITUA 'YOUR_API_KEY_HERE' PELA SUA CHAVE REAL DA API DO GOOGLE MAPS.
-          script.src = `https://maps.googleapis.com/maps/api/js?AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho&v=weekly&libraries=maps,marker,places,geocoding`;
+          // !!! ATENÇÃO: SUBSTITUA 'YOUR_API_KEY_HERE' PELA SUA CHAVE REAL E VÁLIDA DO GOOGLE MAPS. !!!
+          // Para obter a sua chave, crie um projeto no Google Cloud Console e ative a API do Google Maps.
+          script.src = `https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY_HERE&v=weekly&libraries=maps,marker,places,geocoding`;
           script.async = true; 
           script.defer = true;
 
