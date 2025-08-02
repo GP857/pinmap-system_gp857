@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Mapa com Localização e Busca Aprimorada (V17)</title>
+    <title>Mapa com Localização e Busca Aprimorada (V18)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
       html, body {
@@ -190,7 +190,7 @@
       
       const locationsData = typeof locations !== 'undefined' && Array.isArray(locations) ? locations : [];
       if (locationsData.length === 0) {
-          console.error("Erro: A array 'locations' não foi encontrada ou está vazia.");
+          console.error("Erro: A array 'locations' não foi encontrada ou está vazia. O mapa será iniciado sem os marcadores de dados do usuário.");
       }
       
       function showMessage(title, content) {
@@ -207,7 +207,7 @@
         const { Map, InfoWindow } = await google.maps.importLibrary("maps");
         const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
         const { Geocoder } = await google.maps.importLibrary("geocoding");
-        const { PlacesService } = await google.maps.importLibrary("places");
+        const { Place, SearchNearbyRankPreference } = await google.maps.importLibrary("places");
         
         map = new Map(document.getElementById("map"), {
           center: { lat: -23.5505, lng: -46.6333 }, // Centraliza em São Paulo, Brasil
@@ -221,7 +221,6 @@
         });
 
         const geocoder = new Geocoder();
-        const placesService = new PlacesService(map);
 
         function getDistance(lat1, lon1, lat2, lon2) {
             const R = 6371;
@@ -384,7 +383,7 @@
                     
                     showMessage("Busca por Local", `Redirecionando o mapa para: ${geoResponse.results[0].formatted_address}. A busca por comércios será feita nessa área.`);
                     
-                    // Efetua a busca por comércios na nova localização
+                    // Efetua a busca por comércios na nova localização usando a nova API
                     performCommerceSearch(searchTerm, location);
 
                 } else {
@@ -403,91 +402,95 @@
         }
 
 
-        function performCommerceSearch(searchTerm, center) {
+        async function performCommerceSearch(searchTerm, center) {
             const searchRadius = DEFAULT_SEARCH_RADIUS_KM;
             commerceMarkers.forEach(m => m.setMap(null));
             commerceMarkers = [];
             
-            const request = {
-                query: searchTerm,
-                location: center,
-                radius: searchRadius * 1000,
-                type: ['point_of_interest', 'establishment'],
-            };
+            try {
+              const request = {
+                  query: searchTerm,
+                  locationRestriction: {
+                      center: center,
+                      radius: searchRadius * 1000
+                  },
+              };
 
-            placesService.textSearch(request, (results, status) => {
-                showLoading(false);
-                if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
-                    const foundCommerces = [];
-                    const bounds = new google.maps.LatLngBounds();
+              const { places } = await Place.findText(request);
 
-                    results.forEach(place => {
-                        if (place.geometry && place.geometry.location) {
-                            foundCommerces.push(place);
-                            bounds.extend(place.geometry.location);
+              if (places && places.length > 0) {
+                  const foundCommerces = places;
+                  const bounds = new google.maps.LatLngBounds();
 
-                            const commercePinGlyph = new PinElement({
-                                glyph: 'C',
-                                glyphColor: 'black',
-                                background: '#FFD700',
-                                borderColor: '#DAA520'
-                            });
-                            const marker = new AdvancedMarkerElement({
-                                map: map,
-                                position: place.geometry.location,
-                                content: commercePinGlyph.element,
-                                title: place.name
-                            });
-                            marker.addListener("click", () => {
-                                infoWindow.setContent(`<h3>Comércio: ${place.name}</h3><p>${place.formatted_address}</p>`);
-                                infoWindow.open(map, marker);
-                            });
-                            commerceMarkers.push(marker);
-                        }
-                    });
+                  foundCommerces.forEach(place => {
+                      if (place.location) {
+                          bounds.extend(place.location);
 
-                    map.fitBounds(bounds);
+                          const commercePinGlyph = new PinElement({
+                              glyph: 'C',
+                              glyphColor: 'black',
+                              background: '#FFD700',
+                              borderColor: '#DAA520'
+                          });
+                          const marker = new AdvancedMarkerElement({
+                              map: map,
+                              position: place.location,
+                              content: commercePinGlyph.element,
+                              title: place.displayName
+                          });
+                          marker.addListener("click", () => {
+                              infoWindow.setContent(`<h3>Comércio: ${place.displayName}</h3><p>${place.formattedAddress}</p>`);
+                              infoWindow.open(map, marker);
+                          });
+                          commerceMarkers.push(marker);
+                      }
+                  });
 
-                    let usersToDisplay = [];
-                    const userCityLower = userCity ? userCity.toLowerCase() : '';
-                    const targetCityForFilter = "campinas"; 
-                    const applyCityFilter = userCityLower === targetCityForFilter;
+                  map.fitBounds(bounds);
 
-                    locationsData.forEach(user => {
-                        const userIsInTargetCity = user.cidade && user.cidade.toLowerCase() === targetCityForFilter;
+                  let usersToDisplay = [];
+                  const userCityLower = userCity ? userCity.toLowerCase() : '';
+                  const targetCityForFilter = "campinas"; 
+                  const applyCityFilter = userCityLower === targetCityForFilter;
 
-                        const isNearAnyCommerce = foundCommerces.some(commerce => {
-                            const distance = getDistance(
-                                user.latitude, user.longitude,
-                                commerce.geometry.location.lat(), commerce.geometry.location.lng()
-                            );
-                            return distance <= searchRadius;
-                        });
+                  locationsData.forEach(user => {
+                      const userIsInTargetCity = user.cidade && user.cidade.toLowerCase() === targetCityForFilter;
 
-                        if (isNearAnyCommerce && (!applyCityFilter || userIsInTargetCity)) {
-                            usersToDisplay.push(user);
-                        }
-                    });
-                    
-                    displayMarkers(usersToDisplay);
+                      const isNearAnyCommerce = foundCommerces.some(commerce => {
+                          const distance = getDistance(
+                              user.latitude, user.longitude,
+                              commerce.location.lat, commerce.location.lng
+                          );
+                          return distance <= searchRadius;
+                      });
 
-                    let searchMessage = `${foundCommerces.length} comércios "${searchTerm}" encontrados.`;
-                    if (usersToDisplay.length === 0) {
-                        searchMessage += ` Nenhum usuário encontrado próximo aos comércios ${applyCityFilter ? `e na cidade de ${userCity}` : ''}.`;
-                    } else {
-                        searchMessage += ` ${usersToDisplay.length} usuários encontrados próximos aos comércios ${applyCityFilter ? `e na cidade de ${userCity}` : ''}.`;
-                    }
-                    showMessage("Resultados da Busca", searchMessage);
+                      if (isNearAnyCommerce && (!applyCityFilter || userIsInTargetCity)) {
+                          usersToDisplay.push(user);
+                      }
+                  });
+                  
+                  displayMarkers(usersToDisplay);
 
-                } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
-                    // Esta é a regra principal: se a busca não retorna nada, mostrar todos os pontos novamente.
-                    showMessage("Resultados da Busca", `Nenhum comércio "${searchTerm}" encontrado perto da localização. Exibindo todos os pontos do mapa.`);
-                    clearSearch();
-                } else {
-                    showMessage("Erro na Busca", `Erro na busca: ${status}. Por favor, verifique se a Places API está habilitada na sua chave de API.`);
-                    clearSearch();
-                }
-            });
+                  let searchMessage = `${foundCommerces.length} comércios "${searchTerm}" encontrados.`;
+                  if (usersToDisplay.length === 0) {
+                      searchMessage += ` Nenhum usuário encontrado próximo aos comércios ${applyCityFilter ? `e na cidade de ${userCity}` : ''}.`;
+                  } else {
+                      searchMessage += ` ${usersToDisplay.length} usuários encontrados próximos aos comércios ${applyCityFilter ? `e na cidade de ${userCity}` : ''}.`;
+                  }
+                  showMessage("Resultados da Busca", searchMessage);
+
+              } else {
+                  // Se não houver resultados, limpa a busca e exibe todos os pontos novamente.
+                  showMessage("Resultados da Busca", `Nenhum comércio "${searchTerm}" encontrado perto da localização. Exibindo todos os pontos do mapa.`);
+                  clearSearch();
+              }
+            } catch (error) {
+              console.error("Erro na busca de Place:", error);
+              showMessage("Erro na Busca", `Ocorreu um erro na busca: ${error.message}.`);
+              clearSearch();
+            } finally {
+              showLoading(false);
+            }
         }
 
         function clearSearch() {
