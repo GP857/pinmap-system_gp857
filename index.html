@@ -3,12 +3,6 @@
   <head>
     <title>Mapa com Localização e Busca Simples</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!--
-      Este script importa os dados de localização do seu arquivo 'dados.js'
-      no repositório do GitHub. A variável 'locations' será globalmente
-      acessível após este carregamento.
-    -->
-    <script src="https://raw.githubusercontent.com/jrcunha/test-jrcunha-dev-googlemaps-v3/main/js/dados.js"></script>
     <style>
       html, body {
         height: 100%;
@@ -140,21 +134,13 @@
     </div>
 
     <script>
+      // Variável global para armazenar os dados de localização
+      let locationsData = [];
       let map;
       let markerCluster;
       let userLocationMarker = null;
       let userLocationCoords = null;
       
-      // A variável `locations` é carregada a partir do script externo no <head>.
-      // Verificamos se ela existe e é um array.
-      const locationsData = typeof locations !== 'undefined' && Array.isArray(locations) ? locations : [];
-      if (locationsData.length === 0) {
-          console.warn("Aviso: A array 'locations' está vazia. O mapa será exibido sem pontos de utilizador.");
-          showMessage("Dados de Localização", "A lista de localizações está vazia ou não foi carregada corretamente. O mapa será exibido sem os pontos de utilizador.");
-      } else {
-          console.log(`Carregado com sucesso ${locationsData.length} pontos de utilizador.`);
-      }
-
       function showMessage(title, content) {
           document.getElementById('message-title').innerText = title;
           document.getElementById('message-content').innerText = content;
@@ -163,6 +149,39 @@
 
       function showLoading(show) {
           document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
+      }
+
+      // Função para carregar os dados do GitHub
+      // Esta função foi alterada para criar e injetar um elemento <script>,
+      // o que é uma maneira mais fiável de carregar um ficheiro JavaScript externo
+      // do que usar 'fetch' e 'eval'.
+      function loadDataFromGitHub() {
+        showLoading(true);
+        // O URL para o seu ficheiro 'dados.js'
+        const githubDataUrl = "https://raw.githubusercontent.com/GP857/pinmap-system_gp857/main/dados.js";
+        console.log(`A tentar carregar dados do URL: ${githubDataUrl}`);
+        
+        const script = document.createElement('script');
+        script.src = githubDataUrl;
+        
+        script.onload = () => {
+          // Após o carregamento do script, a variável 'locations' deve estar globalmente disponível.
+          if (typeof locations !== 'undefined' && Array.isArray(locations)) {
+              locationsData = locations;
+              console.log(`Carregado com sucesso ${locationsData.length} pontos de utilizador.`);
+              loadGoogleMapsAPI();
+          } else {
+              showLoading(false);
+              showMessage("Erro ao Carregar Dados", "O ficheiro de dados foi carregado, mas a variável 'locations' não foi encontrada ou não é um array. Por favor, verifique o conteúdo do ficheiro.");
+          }
+        };
+        
+        script.onerror = () => {
+          showLoading(false);
+          showMessage("Erro ao Carregar Dados", `Não foi possível carregar o ficheiro de dados do GitHub. Por favor, verifique o URL e a sua ligação à internet.`);
+        };
+        
+        document.head.appendChild(script);
       }
 
       async function initMap() {
@@ -214,7 +233,7 @@
 
             if (typeof markerClusterer !== 'undefined' && typeof markerClusterer.MarkerClusterer !== 'undefined') {
                 markerCluster = new markerClusterer.MarkerClusterer({ markers: currentMarkers, map });
-                console.log(`Total de pontos de usuário exibidos: ${dataArray.length}. Clusters aplicados.`);
+                console.log(`Total de pontos de utilizador exibidos: ${dataArray.length}. Clusters aplicados.`);
             } else {
                 console.error("Erro: MarkerClusterer não foi carregado corretamente ou não está acessível como 'markerClusterer.MarkerClusterer'.");
             }
@@ -328,8 +347,11 @@
 
           // Carregar todos os pontos por padrão
           displayMarkers(locationsData);
+          showLoading(false);
+
         } catch (error) {
           console.error("Erro fatal na inicialização do mapa:", error);
+          showLoading(false);
           showMessage("Erro Crítico", "O mapa não pode ser inicializado. Por favor, verifique a sua chave de API e tente novamente.");
         }
       } // Fim da função initMap()
@@ -338,7 +360,8 @@
           const script = document.createElement('script');
           // !!! ATENÇÃO: SUBSTITUA 'YOUR_API_KEY_HERE' PELA SUA CHAVE REAL E VÁLIDA DO GOOGLE MAPS. !!!
           // Para obter a sua chave, crie um projeto no Google Cloud Console e ative a API do Google Maps.
-          script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho&libraries=maps,marker,places,geocoding`;
+          const apiKey = "YOUR_API_KEY_HERE";
+          script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&v=weekly&libraries=maps,marker,places,geocoding`;
           script.async = true; 
           script.defer = true;
 
@@ -349,13 +372,14 @@
 
           script.onerror = (e) => {
               console.error("Erro ao carregar a Google Maps API:", e);
+              showLoading(false);
               showMessage("Erro de API", "Não foi possível carregar o mapa. Por favor, verifique a sua chave de API e a sua ligação à internet.");
           };
 
           document.head.appendChild(script);
       }
 
-      document.addEventListener('DOMContentLoaded', loadGoogleMapsAPI);
+      document.addEventListener('DOMContentLoaded', loadDataFromGitHub);
 
     </script>
 
