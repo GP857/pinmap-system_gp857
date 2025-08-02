@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Mapa com Localização e Busca Aprimorada (V2)</title>
+    <title>Mapa com Localização e Busca Aprimorada (V3)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
       html, body {
@@ -60,7 +60,6 @@
       #my-location-button:hover {
         background-color: #0b7dda;
       }
-      /* Remove o estilo para #radius-input já que ele será removido */
       #radius-label {
         font-size: 0.9em;
         color: #555;
@@ -81,7 +80,7 @@
       </div>
       <div>
         <label id="radius-label">Raio de busca: 30 km (padrão)</label>
-        </div>
+      </div>
     </div>
 
     <script src="./dados.js"></script>
@@ -90,7 +89,7 @@
       let map;
       let markerCluster;
       let commerceMarkers = [];
-      let userLocationMarker = null;
+      let userLocationMarker = null; // Marcador da localização do usuário
       let userCity = "";
       let userLocationCoords = null;
       const DEFAULT_SEARCH_RADIUS_KM = 30; // Raio padrão de 30 km
@@ -177,14 +176,15 @@
                         };
                         userLocationCoords = pos;
 
+                        // Remove marcador anterior se existir
                         if (userLocationMarker) {
-                            userLocationMarker.map = null;
+                            userLocationMarker.map = null; // Remove o marcador do mapa
+                            userLocationMarker = null; // Zera a variável para recriar
                         }
 
+                        // Cria um marcador para a localização do usuário (apenas cor azul, sem texto "Você")
                         const userPinGlyph = new PinElement({
-                            glyph: 'Você',
-                            glyphColor: 'white',
-                            background: '#007bff',
+                            background: '#007bff', // Cor de fundo azul
                             borderColor: '#0056b3'
                         });
 
@@ -237,7 +237,6 @@
         const searchInput = document.getElementById('search-input');
         const searchButton = document.getElementById('search-button');
         const clearButton = document.getElementById('clear-button');
-        // Removido const radiusInput = document.getElementById('radius-input');
 
         searchButton.addEventListener('click', performCommerceSearch);
         clearButton.addEventListener('click', clearSearch);
@@ -249,7 +248,7 @@
 
         async function performCommerceSearch() {
             const searchTerm = searchInput.value.trim();
-            const searchRadius = DEFAULT_SEARCH_RADIUS_KM; // Raio fixo
+            const searchRadius = DEFAULT_SEARCH_RADIUS_KM;
 
             if (!searchTerm) {
                 alert("Por favor, digite o nome de um comércio para buscar.");
@@ -264,10 +263,9 @@
             const service = new google.maps.places.PlacesService(map);
             const request = {
                 query: searchTerm,
-                // A 'location' para textSearch é um ponto central para priorizar resultados.
-                // Usamos a localização do usuário se disponível, senão o centro atual do mapa.
                 location: userLocationCoords ? new google.maps.LatLng(userLocationCoords.lat, userLocationCoords.lng) : map.getCenter(),
-                radius: searchRadius * 1000, // Raio em metros para a busca (30km = 30000m)
+                radius: searchRadius * 1000,
+                type: ['point_of_interest', 'establishment'],
             };
 
             service.textSearch(request, (results, status) => {
@@ -301,31 +299,26 @@
                         }
                     });
 
-                    map.fitBounds(bounds); // Ajusta o mapa para mostrar todos os comércios encontrados
+                    map.fitBounds(bounds);
 
                     // FILTRAGEM DOS USUÁRIOS: Perto dos comércios E na cidade do usuário (se aplicável)
                     let usersToDisplay = [];
                     const userCityLower = userCity ? userCity.toLowerCase() : '';
-                    // Usaremos "Campinas" como a cidade de referência para filtro, se o usuário estiver lá
-                    const targetCityForFilter = "campinas"; // Assumindo "Campinas" é a cidade de interesse para o filtro
+                    const targetCityForFilter = "campinas"; 
                     const applyCityFilter = userCityLower === targetCityForFilter;
 
                     locations.forEach(user => {
-                        // Verifica se o usuário está na cidade alvo (Campinas)
                         const userIsInTargetCity = user.cidade && user.cidade.toLowerCase() === targetCityForFilter;
 
-                        // Verifica se o usuário está próximo a *qualquer um* dos comércios encontrados
                         const isNearAnyCommerce = foundCommerces.some(commerce => {
                             const distance = getDistance(
                                 user.latitude, user.longitude,
                                 commerce.geometry.location.lat(), commerce.geometry.location.lng()
                             );
-                            return distance <= searchRadius; // Usando o raio padrão de 30km
+                            return distance <= searchRadius;
                         });
 
-                        // Lógica final de inclusão:
                         if (isNearAnyCommerce && (!applyCityFilter || userIsInTargetCity)) {
-                            // Inclui se está perto DE ALGUM COMÉRCIO E (não tem filtro de cidade OU está na cidade certa)
                             usersToDisplay.push(user);
                         }
                     });
@@ -349,11 +342,18 @@
 
         function clearSearch() {
             searchInput.value = '';
-            commerceMarkers.forEach(m => m.map = null);
-            commerceMarkers = [];
-            // userLocationMarker permanece se o usuário o ativou e não será removido ao limpar busca
+            commerceMarkers.forEach(m => m.map = null); // Remove todos os marcadores de comércio
+            commerceMarkers = []; // Limpa a array de marcadores de comércio
             
-            displayMarkers(locations);
+            // Remove o marcador da localização do usuário se ele existir
+            if (userLocationMarker) {
+                userLocationMarker.map = null;
+                userLocationMarker = null; // Reinicializa para que possa ser criado novamente
+                userLocationCoords = null; // Limpa as coordenadas do usuário
+                userCity = ""; // Limpa a cidade do usuário
+            }
+            
+            displayMarkers(locations); // Mostra todos os pontos de usuário novamente
             map.setZoom(5);
             map.setCenter({ lat: -23.5505, lng: -46.6333 });
         }
