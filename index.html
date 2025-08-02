@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Mapa com Localização e Busca Aprimorada (V6)</title>
+    <title>Mapa com Localização e Busca Aprimorada (V7)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
       html, body {
@@ -95,7 +95,6 @@
 
       // Esta função será chamada SOMENTE depois que a API do Google Maps estiver completamente carregada.
       async function initMap() {
-        // Agora, google.maps e suas bibliotecas devem estar disponíveis aqui!
         const { Map, InfoWindow } = await google.maps.importLibrary("maps");
         const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
         const { Geocoder } = await google.maps.importLibrary("geocoding");
@@ -238,7 +237,8 @@
 
         clearButton.addEventListener('click', clearSearch);
         searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
+            // Verifica se a tecla pressionada é 'Enter' (código 13 para compatibilidade mais antiga, embora e.key seja preferível)
+            if (e.key === 'Enter' || e.keyCode === 13) {
                 performCommerceSearch();
             }
         });
@@ -334,7 +334,7 @@
         }
 
         function clearSearch() {
-            searchInput.value = '';
+            searchInput.value = ''; // Esta linha deve limpar o campo de texto
             commerceMarkers.forEach(m => m.map = null);
             commerceMarkers = [];
             
@@ -377,7 +377,6 @@
       // Garante que o DOM esteja completamente carregado antes de tentar adicionar o script da API
       document.addEventListener('DOMContentLoaded', loadGoogleMapsAPI);
 
-      // Remova qualquer chamada direta a initMap() fora de 'onload' ou 'callback'
     </script>
 
     <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
