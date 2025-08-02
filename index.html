@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Mapa com Localização e Busca Aprimorada (V3)</title>
+    <title>Mapa com Localização e Busca Aprimorada (V4)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
       html, body {
@@ -75,7 +75,6 @@
       </div>
       <input type="text" id="search-input" placeholder="Buscar comércio (ex: 'Shopping', 'Bradesco')">
       <div class="button-group">
-        <button id="search-button">Buscar Comércio</button>
         <button id="clear-button">Limpar Busca</button>
       </div>
       <div>
@@ -89,10 +88,10 @@
       let map;
       let markerCluster;
       let commerceMarkers = [];
-      let userLocationMarker = null; // Marcador da localização do usuário
+      let userLocationMarker = null;
       let userCity = "";
       let userLocationCoords = null;
-      const DEFAULT_SEARCH_RADIUS_KM = 30; // Raio padrão de 30 km
+      const DEFAULT_SEARCH_RADIUS_KM = 30;
 
       async function initMap() {
         const { Map, InfoWindow } = await google.maps.importLibrary("maps");
@@ -176,15 +175,13 @@
                         };
                         userLocationCoords = pos;
 
-                        // Remove marcador anterior se existir
                         if (userLocationMarker) {
-                            userLocationMarker.map = null; // Remove o marcador do mapa
-                            userLocationMarker = null; // Zera a variável para recriar
+                            userLocationMarker.map = null;
+                            userLocationMarker = null;
                         }
 
-                        // Cria um marcador para a localização do usuário (apenas cor azul, sem texto "Você")
                         const userPinGlyph = new PinElement({
-                            background: '#007bff', // Cor de fundo azul
+                            background: '#007bff',
                             borderColor: '#0056b3'
                         });
 
@@ -235,10 +232,9 @@
 
         // --- Lógica de Busca por Comércio ---
         const searchInput = document.getElementById('search-input');
-        const searchButton = document.getElementById('search-button');
         const clearButton = document.getElementById('clear-button');
 
-        searchButton.addEventListener('click', performCommerceSearch);
+        // Removido searchButton.addEventListener('click', performCommerceSearch);
         clearButton.addEventListener('click', clearSearch);
         searchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -251,14 +247,17 @@
             const searchRadius = DEFAULT_SEARCH_RADIUS_KM;
 
             if (!searchTerm) {
-                alert("Por favor, digite o nome de um comércio para buscar.");
+                // Se a busca estiver vazia, apenas limpa e mostra todos os usuários
+                clearSearch(); 
                 return;
             }
 
-            // Limpa marcadores de comércio e usuários anteriores
+            // Limpa marcadores de comércio anteriores
             commerceMarkers.forEach(m => m.map = null);
             commerceMarkers = [];
-            displayMarkers([]); // Limpa os usuários exibidos no mapa temporariamente
+            
+            // Não limpa os marcadores de usuário aqui para evitar o "desaparecimento" temporário
+            // Eles serão filtrados e reexibidos no final.
 
             const service = new google.maps.places.PlacesService(map);
             const request = {
@@ -278,7 +277,6 @@
                             foundCommerces.push(place);
                             bounds.extend(place.geometry.location);
 
-                            // Adiciona um marcador para cada comércio encontrado
                             const commercePinGlyph = new PinElement({
                                 glyph: 'C',
                                 glyphColor: 'black',
@@ -301,7 +299,6 @@
 
                     map.fitBounds(bounds);
 
-                    // FILTRAGEM DOS USUÁRIOS: Perto dos comércios E na cidade do usuário (se aplicável)
                     let usersToDisplay = [];
                     const userCityLower = userCity ? userCity.toLowerCase() : '';
                     const targetCityForFilter = "campinas"; 
@@ -323,7 +320,7 @@
                         }
                     });
                     
-                    displayMarkers(usersToDisplay);
+                    displayMarkers(usersToDisplay); // Agora só exibe os usuários filtrados AQUI
 
                     let searchMessage = `${foundCommerces.length} comércios "${searchTerm}" encontrados.`;
                     if (usersToDisplay.length === 0) {
@@ -335,25 +332,24 @@
 
                 } else {
                     alert(`Não foi possível encontrar comércios "${searchTerm}". Por favor, tente refinar a busca.`);
-                    clearSearch();
+                    clearSearch(); // Volta ao estado inicial se não encontrar nada
                 }
             });
         }
 
         function clearSearch() {
             searchInput.value = '';
-            commerceMarkers.forEach(m => m.map = null); // Remove todos os marcadores de comércio
-            commerceMarkers = []; // Limpa a array de marcadores de comércio
+            commerceMarkers.forEach(m => m.map = null);
+            commerceMarkers = [];
             
-            // Remove o marcador da localização do usuário se ele existir
             if (userLocationMarker) {
                 userLocationMarker.map = null;
-                userLocationMarker = null; // Reinicializa para que possa ser criado novamente
-                userLocationCoords = null; // Limpa as coordenadas do usuário
-                userCity = ""; // Limpa a cidade do usuário
+                userLocationMarker = null;
+                userLocationCoords = null;
+                userCity = "";
             }
             
-            displayMarkers(locations); // Mostra todos os pontos de usuário novamente
+            displayMarkers(locations); // Mostra TODOS os pontos de usuário novamente
             map.setZoom(5);
             map.setCenter({ lat: -23.5505, lng: -46.6333 });
         }
@@ -363,7 +359,7 @@
 
       // Bootstrap da API do Google Maps
       (g => {
-        var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
+        var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
         key: "AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho",
         v: "weekly",
         libraries: ["maps", "marker", "places", "geocoding"],
