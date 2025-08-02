@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Mapa com Localização e Busca Aprimorada (V5)</title>
+    <title>Mapa com Localização e Busca Aprimorada (V6)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
       html, body {
@@ -93,9 +93,9 @@
       let userLocationCoords = null;
       const DEFAULT_SEARCH_RADIUS_KM = 30;
 
-      // Define initMap como uma função global (para ser acessada pelo callback da API)
+      // Esta função será chamada SOMENTE depois que a API do Google Maps estiver completamente carregada.
       async function initMap() {
-        // Agora, google.maps já estará disponível aqui!
+        // Agora, google.maps e suas bibliotecas devem estar disponíveis aqui!
         const { Map, InfoWindow } = await google.maps.importLibrary("maps");
         const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
         const { Geocoder } = await google.maps.importLibrary("geocoding");
@@ -322,7 +322,7 @@
                     if (usersToDisplay.length === 0) {
                         searchMessage += ` Nenhum usuário encontrado próximo aos comércios ${applyCityFilter ? `e na cidade de ${userCity}` : ''}.`;
                     } else {
-                        searchMessage += ` ${usersToDisplay.length} usuários encontrados próximos aos comérces ${applyCityFilter ? `e na cidade de ${userCity}` : ''}.`;
+                        searchMessage += ` ${usersToDisplay.length} usuários encontrados próximos aos comércios ${applyCityFilter ? `e na cidade de ${userCity}` : ''}.`;
                     }
                     alert(searchMessage);
 
@@ -353,18 +353,31 @@
         displayMarkers(locations);
       } // Fim da função initMap()
 
-      // --- Bootstrap da API do Google Maps ---
-      // Esta é a parte crucial que garante que initMap() é chamada APENAS quando a API está pronta.
-      // O 'callback' no URL do script faz com que 'initMap()' seja executada automaticamente.
-      (g => {
-        var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
-        key: "AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho",
-        v: "weekly",
-        libraries: ["maps", "marker", "places", "geocoding"],
-        callback: initMap // <--- ESTA É A LINHA MAIS IMPORTANTE DA CORREÇÃO!
-      });
+      // --- Carregamento Dinâmico da API do Google Maps ---
+      // A função para carregar o script da API de forma dinâmica
+      function loadGoogleMapsAPI() {
+          const script = document.createElement('script');
+          script.src = `https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&v=weekly&libraries=maps,marker,places,geocoding`; // <-- Sua chave aqui!
+          script.async = true; // Carregamento assíncrono
+          script.defer = true; // Carregamento adiado
 
-      // Removido a chamada direta initMap(); que causava o erro.
+          script.onload = () => {
+              console.log("Google Maps API carregada com sucesso!");
+              initMap(); // Chama initMap() apenas quando o script estiver carregado
+          };
+
+          script.onerror = (e) => {
+              console.error("Erro ao carregar a Google Maps API:", e);
+              alert("Não foi possível carregar o mapa. Verifique sua conexão ou chave de API.");
+          };
+
+          document.head.appendChild(script);
+      }
+
+      // Garante que o DOM esteja completamente carregado antes de tentar adicionar o script da API
+      document.addEventListener('DOMContentLoaded', loadGoogleMapsAPI);
+
+      // Remova qualquer chamada direta a initMap() fora de 'onload' ou 'callback'
     </script>
 
     <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
