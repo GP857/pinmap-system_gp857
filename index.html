@@ -135,84 +135,152 @@
 
     <script>
       // ----------------------------------------------------------------------------------
-      // ATENÇÃO: SUBSTITUA ESTE CONJUNTO DE DADOS DE EXEMPLO PELO SEU PRÓPRIO CONTEÚDO
+      // ESTES SAO OS SEUS DADOS, INSERIDOS NO CODIGO.
       // ----------------------------------------------------------------------------------
       const locations = [
           {
-              "id": "1",
-              "nome": "Supermercado A",
-              "latitude": -23.5489,
-              "longitude": -46.6388,
-              "localizacao": "Rua Augusta, São Paulo",
-              "cidade": "campinas"
+            "id": 1,
+            "nome": "Juliane Ap. Cyrilo Cunha",
+            "cidade": "Paulínia",
+            "estado": "SP",
+            "latitude": -22.744338,
+            "longitude": -47.1767203,
+            "cep": "13145352",
+            "pais": "Brasil",
+            "localizacao": "Paulínia, SP, Brasil",
+            "descricao": "Usuário da cidade de Paulínia.",
+            "link": "https://www.google.com/maps/search/?api=1&query=-22.744338,-47.1767203",
+            "icone": "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
           },
           {
-              "id": "2",
-              "nome": "Padaria B",
-              "latitude": -23.5510,
-              "longitude": -46.6345,
-              "localizacao": "Avenida Paulista, São Paulo",
-              "cidade": "campinas"
+            "id": 2,
+            "nome": "João Paulo de Moraes",
+            "cidade": "Campinas",
+            "estado": "SP",
+            "latitude": -22.9320985,
+            "longitude": -47.0762548,
+            "cep": "13050008",
+            "pais": "Brasil",
+            "localizacao": "Campinas, SP, Brasil",
+            "descricao": "Usuário da cidade de Campinas.",
+            "link": "https://www.google.com/maps/search/?api=1&query=-22.9320985,-47.0762548",
+            "icone": "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
           },
           {
-              "id": "3",
-              "nome": "Farmácia C",
-              "latitude": -23.5600,
-              "longitude": -46.6300,
-              "localizacao": "Rua Haddock Lobo, São Paulo",
-              "cidade": "sao paulo"
+            "id": 3,
+            "nome": "Lucas Cunha",
+            "cidade": "Campinas",
+            "estado": "SP",
+            "latitude": -22.8533533,
+            "longitude": -47.0469649,
+            "cep": "13087500",
+            "pais": "Brasil",
+            "localizacao": "Campinas, SP, Brasil",
+            "descricao": "Usuário da cidade de Campinas.",
+            "link": "https://www.google.com/maps/search/?api=1&query=-22.8533533,-47.0469649",
+            "icone": "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
           },
           {
-              "id": "4",
-              "nome": "Shopping D",
-              "latitude": -23.5420,
-              "longitude": -46.6210,
-              "localizacao": "Rua da Consolação, São Paulo",
-              "cidade": "campinas"
+            "id": 4,
+            "nome": "Aline Tortosa",
+            "cidade": "Campinas",
+            "estado": "SP",
+            "latitude": -22.9421519,
+            "longitude": -47.0230088,
+            "cep": "13045260",
+            "pais": "Brasil",
+            "localizacao": "Campinas, SP, Brasil",
+            "descricao": "Usuário da cidade de Campinas.",
+            "link": "https://www.google.com/maps/search/?api=1&query=-22.9421519,-47.0230088",
+            "icone": "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
           },
           {
-              "id": "5",
-              "nome": "Parque Ibirapuera",
-              "latitude": -23.5878,
-              "longitude": -46.6575,
-              "localizacao": "Avenida Pedro Álvares Cabral, São Paulo",
-              "cidade": "sao paulo"
+            "id": 5,
+            "nome": "Alexx Amatuzzi",
+            "cidade": "Valinhos",
+            "estado": "SP",
+            "latitude": -22.9772,
+            "longitude": -46.989,
+            "cep": "13322020",
+            "pais": "Brasil",
+            "localizacao": "Valinhos, SP, Brasil",
+            "descricao": "Usuário da cidade de Valinhos.",
+            "link": "https://www.google.com/maps/search/?api=1&query=-22.9772,-46.989",
+            "icone": "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
           },
           {
-              "id": "6",
-              "nome": "Museu do Amanhã",
-              "latitude": -22.8988,
-              "longitude": -43.1772,
-              "localizacao": "Praça Mauá, Rio de Janeiro",
-              "cidade": "rio de janeiro"
+            "id": 6,
+            "nome": "Ricardo Augusto Costa Raven",
+            "cidade": "Hortolândia",
+            "estado": "SP",
+            "latitude": -22.8862883,
+            "longitude": -47.2013605,
+            "cep": "13186635",
+            "pais": "Brasil",
+            "localizacao": "Hortolândia, SP, Brasil",
+            "descricao": "Usuário da cidade de Hortolândia.",
+            "link": "https://www.google.com/maps/search/?api=1&query=-22.8862883,-47.2013605",
+            "icone": "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
           },
           {
-              "id": "7",
-              "nome": "Lagoa do Taquaral",
-              "latitude": -22.8809,
-              "longitude": -47.0543,
-              "localizacao": "Avenida Dr. Heitor Penteado, Campinas",
-              "cidade": "campinas"
+            "id": 7,
+            "nome": "Carlos Eduardo Pereira de Souza",
+            "cidade": "Campinas",
+            "estado": "SP",
+            "latitude": -22.9826214,
+            "longitude": -47.1202832,
+            "cep": "13054421",
+            "pais": "Brasil",
+            "localizacao": "Campinas, SP, Brasil",
+            "descricao": "Usuário da cidade de Campinas.",
+            "link": "https://www.google.com/maps/search/?api=1&query=-22.9826214,-47.1202832",
+            "icone": "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
           },
           {
-              "id": "8",
-              "nome": "Mercado Municipal de São Paulo",
-              "latitude": -23.5401,
-              "longitude": -46.6284,
-              "localizacao": "Rua Cantareira, São Paulo",
-              "cidade": "sao paulo"
+            "id": 8,
+            "nome": "Adrian Roberto Chiminazzo",
+            "cidade": "Valinhos",
+            "estado": "SP",
+            "latitude": -22.9813643,
+            "longitude": -46.9938373,
+            "cep": "13276409",
+            "pais": "Brasil",
+            "localizacao": "Valinhos, SP, Brasil",
+            "descricao": "Usuário da cidade de Valinhos.",
+            "link": "https://www.google.com/maps/search/?api=1&query=-22.9813643,-46.9938373",
+            "icone": "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
           },
           {
-              "id": "9",
-              "nome": "Catedral Metropolitana de Campinas",
-              "latitude": -22.9067,
-              "longitude": -47.0607,
-              "localizacao": "Praça José Bonifácio, Campinas",
-              "cidade": "campinas"
-          }
+            "id": 9,
+            "nome": "Roberta Dos Santos Silva",
+            "cidade": "Campinas",
+            "estado": "SP",
+            "latitude": -22.9710829,
+            "longitude": -47.1572759,
+            "cep": "13056204",
+            "pais": "Brasil",
+            "localizacao": "Campinas, SP, Brasil",
+            "descricao": "Usuário da cidade de Campinas.",
+            "link": "https://www.google.com/maps/search/?api=1&query=-22.9710829,-47.1572759",
+            "icone": "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
+          },
+          {
+            "id": 10,
+            "nome": "Ingryd Micheli Breg",
+            "cidade": "Limeira",
+            "estado": "SP",
+            "latitude": -22.5571965,
+            "longitude": -47.3772316,
+            "cep": "13486333",
+            "pais": "Brasil",
+            "localizacao": "Limeira, SP, Brasil",
+            "descricao": "Usuário da cidade de Limeira.",
+            "link": "https://www.google.com/maps/search/?api=1&query=-22.5571965,-47.3772316",
+            "icone": "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
+           }
       ];
       // ----------------------------------------------------------------------------------
-      // FIM DOS DADOS DE EXEMPLO
+      // FIM DOS DADOS
       // ----------------------------------------------------------------------------------
     </script>
 
@@ -405,9 +473,8 @@
 
       function loadGoogleMapsAPI() {
           const script = document.createElement('script');
-          // A chave de API abaixo é um placeholder. Você deve substituí-la pela sua chave de API
-          // do Google Maps com as permissões e restrições corretas para o seu domínio.
-          script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho&v=weekly&libraries=maps,marker,places,geocoding`;
+          // ATENÇÃO: SUBSTITUA 'YOUR_API_KEY_HERE' PELA SUA CHAVE REAL DA API DO GOOGLE MAPS.
+          script.src = `https://maps.googleapis.com/maps/api/js?AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho&v=weekly&libraries=maps,marker,places,geocoding`;
           script.async = true; 
           script.defer = true;
 
