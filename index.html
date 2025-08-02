@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Mapa com Localização e Busca Aprimorada (V18)</title>
+    <title>Mapa com Localização e Busca Simples (V18)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
       html, body {
@@ -108,12 +108,9 @@
       <div class="button-group">
         <button id="my-location-button">Meu Local</button>
       </div>
-      <input type="text" id="search-input" placeholder="Buscar local ou comércio (ex: 'Paris', 'Shopping')">
+      <input type="text" id="search-input" placeholder="Buscar local ou comércio (ex: 'Rua Principal')">
       <div class="button-group">
         <button id="clear-button">Limpar Busca</button>
-      </div>
-      <div>
-        <label id="radius-label">Raio de busca: 30 km (padrão)</label>
       </div>
     </div>
 
@@ -172,6 +169,46 @@
               "longitude": -46.6210,
               "localizacao": "Rua da Consolação, São Paulo",
               "cidade": "campinas"
+          },
+          {
+              "id": "5",
+              "nome": "Parque Ibirapuera",
+              "latitude": -23.5878,
+              "longitude": -46.6575,
+              "localizacao": "Avenida Pedro Álvares Cabral, São Paulo",
+              "cidade": "sao paulo"
+          },
+          {
+              "id": "6",
+              "nome": "Museu do Amanhã",
+              "latitude": -22.8988,
+              "longitude": -43.1772,
+              "localizacao": "Praça Mauá, Rio de Janeiro",
+              "cidade": "rio de janeiro"
+          },
+          {
+              "id": "7",
+              "nome": "Lagoa do Taquaral",
+              "latitude": -22.8809,
+              "longitude": -47.0543,
+              "localizacao": "Avenida Dr. Heitor Penteado, Campinas",
+              "cidade": "campinas"
+          },
+          {
+              "id": "8",
+              "nome": "Mercado Municipal de São Paulo",
+              "latitude": -23.5401,
+              "longitude": -46.6284,
+              "localizacao": "Rua Cantareira, São Paulo",
+              "cidade": "sao paulo"
+          },
+          {
+              "id": "9",
+              "nome": "Catedral Metropolitana de Campinas",
+              "latitude": -22.9067,
+              "longitude": -47.0607,
+              "localizacao": "Praça José Bonifácio, Campinas",
+              "cidade": "campinas"
           }
       ];
       // ----------------------------------------------------------------------------------
@@ -182,17 +219,13 @@
     <script>
       let map;
       let markerCluster;
-      let commerceMarkers = [];
       let userLocationMarker = null;
-      let userCity = "";
       let userLocationCoords = null;
-      const DEFAULT_SEARCH_RADIUS_KM = 30;
-      
       const locationsData = typeof locations !== 'undefined' && Array.isArray(locations) ? locations : [];
       if (locationsData.length === 0) {
-          console.error("Erro: A array 'locations' não foi encontrada ou está vazia. O mapa será iniciado sem os marcadores de dados do usuário.");
+          console.error("Erro: A array 'locations' não foi encontrada ou está vazia.");
       }
-      
+
       function showMessage(title, content) {
           document.getElementById('message-title').innerText = title;
           document.getElementById('message-content').innerText = content;
@@ -207,7 +240,6 @@
         const { Map, InfoWindow } = await google.maps.importLibrary("maps");
         const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
         const { Geocoder } = await google.maps.importLibrary("geocoding");
-        const { Place, SearchNearbyRankPreference } = await google.maps.importLibrary("places");
         
         map = new Map(document.getElementById("map"), {
           center: { lat: -23.5505, lng: -46.6333 }, // Centraliza em São Paulo, Brasil
@@ -221,18 +253,6 @@
         });
 
         const geocoder = new Geocoder();
-
-        function getDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371;
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = 
-                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            const distance = R * c;
-            return distance;
-        }
 
         function displayMarkers(dataArray) {
           if (markerCluster) {
@@ -306,24 +326,7 @@
 
                         map.setCenter(pos);
                         map.setZoom(15);
-
-                        try {
-                            const response = await geocoder.geocode({ location: pos });
-                            if (response.results[0]) {
-                                const cityComponent = response.results[0].address_components.find(
-                                    comp => comp.types.includes("locality") || comp.types.includes("administrative_area_level_2")
-                                );
-                                userCity = cityComponent ? cityComponent.long_name : "";
-                                showMessage("Sua Localização", `Você está em: ${userCity || 'Cidade não detetada'} (Lat: ${pos.lat.toFixed(4)}, Lng: ${pos.lng.toFixed(4)})`);
-                            } else {
-                                userCity = "";
-                                showMessage("Sua Localização", `Você está em: Lat: ${pos.lat.toFixed(4)}, Lng: ${pos.lng.toFixed(4)} (Cidade não encontrada)`);
-                            }
-                        } catch (error) {
-                            console.error("Erro ao obter cidade do usuário via Geocoding: ", error);
-                            userCity = "";
-                            showMessage("Sua Localização", `Você está em: Lat: ${pos.lat.toFixed(4)}, Lng: ${pos.lng.toFixed(4)} (Erro ao obter cidade)`);
-                        }
+                        showMessage("Sua Localização", `Você está em: Lat: ${pos.lat.toFixed(4)}, Lng: ${pos.lng.toFixed(4)}`);
                     },
                     (error) => {
                         showLoading(false);
@@ -331,17 +334,13 @@
                         if (error && error.code) { 
                             if (error.code === error.PERMISSION_DENIED) {
                                 errorMessage = "A permissão para aceder à sua localização foi negada. Por favor, permita o acesso nas definições do seu navegador.";
-                                console.error("Erro ao obter localização: Permissão negada.", error);
                             } else if (error.code === error.POSITION_UNAVAILABLE) {
                                 errorMessage = "A sua localização não está disponível. Por favor, verifique as suas definições de localização.";
-                                console.error("Erro ao obter localização: Posição indisponível.", error);
                             } else if (error.code === error.TIMEOUT) {
                                 errorMessage = "O pedido para obter a sua localização expirou. Por favor, tente novamente.";
-                                console.error("Erro ao obter localização: Tempo esgotado.", error);
                             }
                         } else {
                             errorMessage = "Ocorreu um erro desconhecido ao tentar obter a sua localização. Por favor, verifique a sua conexão ou tente novamente mais tarde.";
-                            console.error("Erro ao obter localização: O navegador não forneceu um código de erro específico.", error);
                         }
                         showMessage("Erro de Localização", errorMessage);
                     },
@@ -359,158 +358,48 @@
         clearButton.addEventListener('click', clearSearch);
         searchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' || e.keyCode === 13) {
-                performSmartSearch();
+                performSimpleSearch();
             }
         });
         
-        async function performSmartSearch() {
-            const searchTerm = searchInput.value.trim();
+        function performSimpleSearch() {
+            const searchTerm = searchInput.value.trim().toLowerCase();
             if (!searchTerm) {
                 clearSearch();
                 return;
             }
 
-            showLoading(true);
-
-            // Etapa 1: Tentar traduzir a busca para uma localização geográfica
-            try {
-                const geoResponse = await geocoder.geocode({ address: searchTerm });
-
-                if (geoResponse.results && geoResponse.results.length > 0) {
-                    const location = geoResponse.results[0].geometry.location;
-                    map.setCenter(location);
-                    map.setZoom(12);
-                    
-                    showMessage("Busca por Local", `Redirecionando o mapa para: ${geoResponse.results[0].formatted_address}. A busca por comércios será feita nessa área.`);
-                    
-                    // Efetua a busca por comércios na nova localização usando a nova API
-                    performCommerceSearch(searchTerm, location);
-
-                } else {
-                    // Se não for uma localização, usa o local do usuário ou o centro do mapa
-                    let searchCenter = userLocationCoords || map.getCenter();
-                    if (!userLocationCoords) {
-                        showMessage("Localização", "A sua localização não foi detetada. A busca por comércio será feita a partir do centro atual do mapa. Para um resultado mais preciso, clique em 'Meu Local' primeiro.");
-                    }
-                    performCommerceSearch(searchTerm, searchCenter);
-                }
-            } catch (error) {
-                showLoading(false);
-                console.error("Erro na busca de geocodificação:", error);
-                showMessage("Erro", "Ocorreu um erro na busca por localização. Verifique a sua conexão.");
-            }
-        }
-
-
-        async function performCommerceSearch(searchTerm, center) {
-            const searchRadius = DEFAULT_SEARCH_RADIUS_KM;
-            commerceMarkers.forEach(m => m.setMap(null));
-            commerceMarkers = [];
+            const filteredLocations = locationsData.filter(loc => 
+                loc.nome.toLowerCase().includes(searchTerm) || 
+                loc.localizacao.toLowerCase().includes(searchTerm) || 
+                loc.cidade.toLowerCase().includes(searchTerm)
+            );
             
-            try {
-              const request = {
-                  query: searchTerm,
-                  locationRestriction: {
-                      center: center,
-                      radius: searchRadius * 1000
-                  },
-              };
-
-              const { places } = await Place.findText(request);
-
-              if (places && places.length > 0) {
-                  const foundCommerces = places;
-                  const bounds = new google.maps.LatLngBounds();
-
-                  foundCommerces.forEach(place => {
-                      if (place.location) {
-                          bounds.extend(place.location);
-
-                          const commercePinGlyph = new PinElement({
-                              glyph: 'C',
-                              glyphColor: 'black',
-                              background: '#FFD700',
-                              borderColor: '#DAA520'
-                          });
-                          const marker = new AdvancedMarkerElement({
-                              map: map,
-                              position: place.location,
-                              content: commercePinGlyph.element,
-                              title: place.displayName
-                          });
-                          marker.addListener("click", () => {
-                              infoWindow.setContent(`<h3>Comércio: ${place.displayName}</h3><p>${place.formattedAddress}</p>`);
-                              infoWindow.open(map, marker);
-                          });
-                          commerceMarkers.push(marker);
-                      }
-                  });
-
-                  map.fitBounds(bounds);
-
-                  let usersToDisplay = [];
-                  const userCityLower = userCity ? userCity.toLowerCase() : '';
-                  const targetCityForFilter = "campinas"; 
-                  const applyCityFilter = userCityLower === targetCityForFilter;
-
-                  locationsData.forEach(user => {
-                      const userIsInTargetCity = user.cidade && user.cidade.toLowerCase() === targetCityForFilter;
-
-                      const isNearAnyCommerce = foundCommerces.some(commerce => {
-                          const distance = getDistance(
-                              user.latitude, user.longitude,
-                              commerce.location.lat, commerce.location.lng
-                          );
-                          return distance <= searchRadius;
-                      });
-
-                      if (isNearAnyCommerce && (!applyCityFilter || userIsInTargetCity)) {
-                          usersToDisplay.push(user);
-                      }
-                  });
-                  
-                  displayMarkers(usersToDisplay);
-
-                  let searchMessage = `${foundCommerces.length} comércios "${searchTerm}" encontrados.`;
-                  if (usersToDisplay.length === 0) {
-                      searchMessage += ` Nenhum usuário encontrado próximo aos comércios ${applyCityFilter ? `e na cidade de ${userCity}` : ''}.`;
-                  } else {
-                      searchMessage += ` ${usersToDisplay.length} usuários encontrados próximos aos comércios ${applyCityFilter ? `e na cidade de ${userCity}` : ''}.`;
-                  }
-                  showMessage("Resultados da Busca", searchMessage);
-
-              } else {
-                  // Se não houver resultados, limpa a busca e exibe todos os pontos novamente.
-                  showMessage("Resultados da Busca", `Nenhum comércio "${searchTerm}" encontrado perto da localização. Exibindo todos os pontos do mapa.`);
-                  clearSearch();
-              }
-            } catch (error) {
-              console.error("Erro na busca de Place:", error);
-              showMessage("Erro na Busca", `Ocorreu um erro na busca: ${error.message}.`);
-              clearSearch();
-            } finally {
-              showLoading(false);
+            if (filteredLocations.length > 0) {
+                displayMarkers(filteredLocations);
+                showMessage("Resultados da Busca", `${filteredLocations.length} pontos encontrados.`);
+            } else {
+                displayMarkers([]);
+                showMessage("Resultados da Busca", "Nenhum ponto encontrado com o termo de busca.");
             }
         }
 
         function clearSearch() {
             searchInput.value = '';
-            commerceMarkers.forEach(m => m.setMap(null));
-            commerceMarkers = [];
             
             if (userLocationMarker) {
                 userLocationMarker.setMap(null);
                 userLocationMarker = null;
                 userLocationCoords = null;
-                userCity = "";
             }
             
             displayMarkers(locationsData);
             map.setZoom(5);
             map.setCenter({ lat: -23.5505, lng: -46.6333 });
+            showMessage("Busca Limpa", "Todos os pontos foram restaurados.");
         }
 
-        // Chamar a função de inicialização na ordem correta
+        // Carregar todos os pontos por padrão
         displayMarkers(locationsData);
       } // Fim da função initMap()
 
