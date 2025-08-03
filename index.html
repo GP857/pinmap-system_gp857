@@ -131,14 +131,17 @@
         <button id="message-ok-button">OK</button>
     </div>
 
+    <!-- O arquivo dados.js deve definir a variável global 'locations' -->
     <script src="./dados.js"></script>
 
     <script>
       let map;
       let markerCluster;
-      let commerceMarker = null;
-      let userLocationMarker = null; // Novo marcador para a localização do usuário
-      let searchCircle = null; // Novo círculo para o raio de busca
+      let commerceMarkers = []; // Array para armazenar múltiplos marcadores de comércio
+      let allUserMarkers = []; // Array para armazenar todos os marcadores de usuário
+      let userLocationMarker = null;
+      let searchCircle = null;
+      let userCurrentPosition = null; // Armazena a localização do usuário
 
       // Função para exibir a caixa de mensagem personalizada
       function showMessage(text) {
@@ -179,12 +182,14 @@
           return distance;
         }
 
-        // Função para criar e adicionar marcadores/clusters com base em uma array de dados
-        function displayMarkers(dataArray) {
+        // Função para criar e adicionar TODOS os marcadores de usuário
+        function displayAllUserMarkers(dataArray) {
+          // Limpa marcadores de usuário anteriores, se houver
           if (markerCluster) {
             markerCluster.clearMarkers();
           }
-
+          allUserMarkers = []; // Reinicia o array de marcadores de usuário
+          
           if (typeof dataArray !== 'undefined' && Array.isArray(dataArray)) {
             const currentMarkers = dataArray.map((data) => {
               const label = data.nome ? data.nome[0].toUpperCase() : '';
@@ -203,12 +208,13 @@
                 infoWindow.setContent(`<h3>${data.nome}</h3><p>${data.localizacao}</p><p>ID: ${data.id}</p>`);
                 infoWindow.open(map, marker);
               });
-
+              
               return marker;
             });
+            allUserMarkers = currentMarkers; // Armazena todos os marcadores de usuário
 
             if (typeof markerClusterer !== 'undefined' && typeof markerClusterer.MarkerClusterer !== 'undefined') {
-              markerCluster = new markerClusterer.MarkerClusterer({ markers: currentMarkers, map });
+              markerCluster = new markerClusterer.MarkerClusterer({ markers: allUserMarkers, map });
               console.log(`Total de pontos de usuário exibidos: ${dataArray.length}. Clusters aplicados.`);
             } else {
               console.error("Erro: MarkerClusterer não foi carregado corretamente.");
@@ -243,11 +249,15 @@
                             lat: position.coords.latitude,
                             lng: position.coords.longitude,
                         };
+                        userCurrentPosition = pos; // Armazena a posição do usuário
                         
-                        // Limpa marcadores e círculos anteriores
-                        clearSearch();
+                        // Limpa marcadores de comércio e círculo anteriores
+                        clearCommerceAndCircle();
                         
-                        // Adiciona um marcador azul para a localização do usuário
+                        // Adiciona ou atualiza o marcador azul para a localização do usuário
+                        if (userLocationMarker) {
+                            userLocationMarker.map = null;
+                        }
                         const userPinGlyph = new PinElement({
                             glyph: 'Você',
                             glyphColor: 'white',
@@ -262,7 +272,7 @@
                         });
 
                         // Desenha um círculo para o raio de busca a partir da sua localização
-                        const searchRadius = parseFloat(radiusInput.value) * 1000; // Converte km para metros
+                        const searchRadius = parseFloat(radiusInput.value) * 1000;
                         searchCircle = new Circle({
                             strokeColor: "#FF0000",
                             strokeOpacity: 0.8,
@@ -274,7 +284,7 @@
                             radius: searchRadius,
                         });
                         
-                        // Filtra os usuários próximos à sua localização
+                        // Filtra os usuários próximos para exibição no console
                         const nearbyUsers = locations.filter(user => {
                             const distance = getDistance(
                                 user.latitude, user.longitude,
@@ -282,13 +292,12 @@
                             );
                             return distance <= parseFloat(radiusInput.value);
                         });
-
-                        displayMarkers(nearbyUsers);
                         
                         map.setCenter(pos);
                         map.setZoom(12);
 
                         if (nearbyUsers.length === 0) {
+                            console.log(`Nenhum usuário encontrado em um raio de ${radiusInput.value} km da sua localização.`);
                             showMessage(`Nenhum usuário encontrado em um raio de ${radiusInput.value} km da sua localização.`);
                         } else {
                             console.log(`${nearbyUsers.length} usuários encontrados em um raio de ${radiusInput.value} km da sua localização.`);
@@ -306,120 +315,100 @@
         
         async function performCommerceSearch() {
           const searchTerm = searchInput.value.trim();
-          const searchRadius = parseFloat(radiusInput.value);
-
+          
           if (!searchTerm) {
             showMessage("Por favor, digite o nome de um comércio para buscar.");
             return;
           }
-          if (isNaN(searchRadius) || searchRadius <= 0) {
-            showMessage("Por favor, insira um raio de busca válido (número positivo).");
-            return;
+
+          if (!userCurrentPosition) {
+              showMessage("Por favor, clique em 'Minha Localização' primeiro para centralizar a busca.");
+              return;
           }
           
-          // Limpa o marcador de comércio e o círculo anterior
-          if (commerceMarker) {
-            commerceMarker.map = null;
-            commerceMarker = null;
-          }
-          if (searchCircle) {
-            searchCircle.setMap(null);
-            searchCircle = null;
-          }
-          if (userLocationMarker) {
-            userLocationMarker.map = null;
-            userLocationMarker = null;
-          }
+          // Limpa marcadores de comércio e círculo anteriores
+          clearCommerceAndCircle();
 
           const service = new google.maps.places.PlacesService(map);
           const request = {
             query: searchTerm,
-            fields: ['name', 'geometry', 'formatted_address'],
-            locationBias: map.getBounds(),
+            location: userCurrentPosition,
+            radius: 50000, // Raio de busca amplo (50km) para encontrar mais resultados
           };
 
-          service.findPlaceFromQuery(request, (results, status) => {
+          service.textSearch(request, (results, status) => {
             if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
-              const place = results[0];
-              const placeLocation = place.geometry.location;
+              
+              const infoWindow = new google.maps.InfoWindow();
 
-              const commercePinGlyph = new PinElement({
-                glyph: 'C',
-                glyphColor: 'black',
-                background: '#FFD700',
-                borderColor: '#DAA520'
-              });
-              commerceMarker = new AdvancedMarkerElement({
-                map: map,
-                position: placeLocation,
-                content: commercePinGlyph.element,
-                title: place.name
-              });
+              results.forEach(place => {
+                  if (place.geometry && place.geometry.location) {
+                      const commercePinGlyph = new PinElement({
+                          glyph: 'C',
+                          glyphColor: 'black',
+                          background: '#FFD700',
+                          borderColor: '#DAA520'
+                      });
 
-              commerceMarker.addListener("click", () => {
-                infoWindow.setContent(`<h3>Comércio: ${place.name}</h3><p>${place.formatted_address}</p>`);
-                infoWindow.open(map, commerceMarker);
-              });
+                      const marker = new AdvancedMarkerElement({
+                          map: map,
+                          position: place.geometry.location,
+                          content: commercePinGlyph.element,
+                          title: place.name
+                      });
+                      commerceMarkers.push(marker); // Adiciona o marcador ao array
 
-              // Desenha o círculo para o raio de busca a partir do comércio
-              const radiusInMeters = searchRadius * 1000;
-              searchCircle = new Circle({
-                  strokeColor: "#0000FF",
-                  strokeOpacity: 0.8,
-                  strokeWeight: 2,
-                  fillColor: "#0000FF",
-                  fillOpacity: 0.35,
-                  map,
-                  center: placeLocation,
-                  radius: radiusInMeters,
+                      marker.addListener("click", () => {
+                          infoWindow.setContent(`<h3>${place.name}</h3><p>${place.formatted_address || ''}</p>`);
+                          infoWindow.open(map, marker);
+                      });
+                  }
               });
 
-              map.setCenter(placeLocation);
+              map.setCenter(userCurrentPosition);
               map.setZoom(12);
 
-              const nearbyUsers = locations.filter(user => {
-                const distance = getDistance(
-                  user.latitude, user.longitude,
-                  placeLocation.lat(), placeLocation.lng()
-                );
-                return distance <= searchRadius;
-              });
-
-              displayMarkers(nearbyUsers);
-              
-              if (nearbyUsers.length === 0) {
-                showMessage(`Nenhum usuário encontrado em um raio de ${searchRadius} km de "${place.name}".`);
-              } else {
-                console.log(`${nearbyUsers.length} usuários encontrados em um raio de ${searchRadius} km de "${place.name}".`);
-              }
+              showMessage(`${results.length} comércios encontrados para "${searchTerm}".`);
 
             } else {
-              showMessage(`Não foi possível encontrar o comércio "${searchTerm}". Por favor, tente refinar a busca.`);
-              clearSearch();
+              showMessage(`Não foi possível encontrar nenhum comércio "${searchTerm}". Por favor, tente refinar a busca.`);
             }
           });
+        }
+        
+        function clearCommerceAndCircle() {
+            // Remove os marcadores de comércio
+            commerceMarkers.forEach(marker => marker.map = null);
+            commerceMarkers = [];
+            
+            // Remove o marcador e o círculo de localização do usuário
+            if (userLocationMarker) {
+                userLocationMarker.map = null;
+                userLocationMarker = null;
+            }
+            if (searchCircle) {
+                searchCircle.setMap(null);
+                searchCircle = null;
+            }
         }
 
         function clearSearch() {
           searchInput.value = '';
-          if (commerceMarker) {
-            commerceMarker.map = null;
-            commerceMarker = null;
-          }
-          if (userLocationMarker) {
-            userLocationMarker.map = null;
-            userLocationMarker = null;
-          }
-          if (searchCircle) {
-            searchCircle.setMap(null);
-            searchCircle = null;
-          }
-          displayMarkers(locations);
+          clearCommerceAndCircle();
+          
+          // Mantém os marcadores de usuário e reseta a visão do mapa
           map.setZoom(5);
           map.setCenter({ lat: -23.5505, lng: -46.6333 });
         }
 
-        displayMarkers(locations);
+        // Inicializa o mapa exibindo todos os pontos de usuário ao carregar
+        // Certifica-se de que a variável global 'locations' existe
+        if (typeof locations !== 'undefined') {
+            displayAllUserMarkers(locations);
+        } else {
+            console.error("A variável 'locations' do arquivo dados.js não foi encontrada.");
+            showMessage("Erro: Arquivo de dados não carregado corretamente.");
+        }
       }
 
       (g => {
