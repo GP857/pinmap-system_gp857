@@ -19,143 +19,144 @@
         top: 10px;
         left: 10px;
         background-color: white;
-        padding: 10px;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        padding: 15px;
+        border-radius: 12px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         z-index: 10;
         display: flex;
         flex-direction: column;
-        gap: 5px;
+        gap: 10px;
       }
       #search-input {
-        padding: 8px;
+        padding: 10px;
         border: 1px solid #ccc;
-        border-radius: 4px;
+        border-radius: 6px;
         width: 250px;
+        font-size: 16px;
       }
       .button-group {
         display: flex;
-        gap: 5px;
+        gap: 8px;
+        flex-wrap: wrap;
       }
-      #search-button {
-        padding: 8px 12px;
-        background-color: #4CAF50;
+      .map-button {
+        padding: 10px 16px;
         color: white;
         border: none;
-        border-radius: 4px;
+        border-radius: 6px;
         cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.3s ease;
+      }
+      #search-button {
+        background-color: #4CAF50;
       }
       #search-button:hover {
         background-color: #45a049;
       }
       #clear-button {
-        padding: 8px 12px;
         background-color: #f44336;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
       }
       #clear-button:hover {
         background-color: #da190b;
+      }
+      #current-location-button {
+        background-color: #2196F3;
+      }
+      #current-location-button:hover {
+        background-color: #1a71c4;
       }
       #radius-input {
         padding: 8px;
         border: 1px solid #ccc;
         border-radius: 4px;
-        width: 100px;
+        width: 80px;
+        font-size: 14px;
       }
       #radius-label {
-        font-size: 0.9em;
+        font-size: 1em;
         color: #555;
       }
-      /* Estilos para a caixa de mensagem personalizada */
+      /* Estilo para a caixa de mensagem personalizada */
       #message-box {
+        display: none;
         position: fixed;
-        bottom: 20px;
+        top: 50%;
         left: 50%;
-        transform: translateX(-50%);
-        background-color: #333;
-        color: white;
-        padding: 12px 24px;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        z-index: 20;
-        opacity: 0;
-        visibility: hidden;
-        transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+        transform: translate(-50%, -50%);
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        z-index: 100;
+        text-align: center;
+        max-width: 80%;
       }
-      #message-box.show {
-        opacity: 1;
-        visibility: visible;
+      #message-box p {
+        margin: 0 0 15px 0;
+        font-size: 1.1em;
+      }
+      #message-box button {
+        padding: 8px 20px;
+        background-color: #2196F3;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      #message-box button:hover {
+        background-color: #1a71c4;
       }
     </style>
-    <!-- NOVO: Carregamento do MarkerClusterer no cabeçalho para garantir que esteja disponível -->
-    <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js"></script>
   </head>
   <body>
     <div id="map"></div>
 
     <div id="search-container">
       <input type="text" id="search-input" placeholder="Buscar comércio (ex: 'Padaria')">
-      <div class="button-group">
-        <button id="search-button">Buscar Comércio</button>
-        <button id="clear-button">Limpar Busca</button>
-      </div>
       <div>
         <label id="radius-label" for="radius-input">Raio de busca (km):</label>
         <input type="number" id="radius-input" value="30" min="1" max="100">
       </div>
+      <div class="button-group">
+        <button id="search-button" class="map-button">Buscar Comércio</button>
+        <button id="current-location-button" class="map-button">Minha Localização</button>
+        <button id="clear-button" class="map-button">Limpar</button>
+      </div>
     </div>
-    
-    <div id="message-box"></div>
 
-    <!-- Dados de localização de exemplo para os marcadores de utilizadores. -->
-    <script>
-      const locations = [
-        { id: 'user1', nome: 'Usuário 1', localizacao: 'Rua A, 123, Campinas', latitude: -22.95, longitude: -47.05 },
-        { id: 'user2', nome: 'Usuário 2', localizacao: 'Av. B, 456, São Paulo', latitude: -23.55, longitude: -46.63 },
-        { id: 'user3', nome: 'Usuário 3', localizacao: 'Rua C, 789, Rio de Janeiro', latitude: -22.90, longitude: -43.17 },
-        { id: 'user4', nome: 'Usuário 4', localizacao: 'Praça D, 101, Belo Horizonte', latitude: -19.91, longitude: -43.93 },
-        { id: 'user5', nome: 'Usuário 5', localizacao: 'Rua E, 202, Curitiba', latitude: -25.42, longitude: -49.27 },
-        { id: 'user6', nome: 'Usuário 6', localizacao: 'Av. F, 303, Salvador', latitude: -12.97, longitude: -38.50 },
-        { id: 'user7', nome: 'Usuário 7', localizacao: 'Rua G, 404, Porto Alegre', latitude: -30.03, longitude: -51.21 },
-        { id: 'user8', nome: 'Usuário 8', localizacao: 'Av. H, 505, Fortaleza', latitude: -3.73, longitude: -38.52 },
-        { id: 'user9', nome: 'Usuário 9', localizacao: 'Rua I, 606, Manaus', latitude: -3.11, longitude: -60.02 },
-        { id: 'user10', nome: 'Usuário 10', localizacao: 'Rua J, 707, Belém', latitude: -1.45, longitude: -48.50 }
-      ];
-    </script>
-    
-    <!-- Script principal com a lógica do mapa -->
+    <!-- Caixa de mensagem personalizada para substituir 'alert' -->
+    <div id="message-box">
+        <p id="message-text"></p>
+        <button id="message-ok-button">OK</button>
+    </div>
+
+    <script src="./dados.js"></script>
+
     <script>
       let map;
       let markerCluster;
       let commerceMarker = null;
-      let nearbyUsersCircle = null;
+      let userLocationMarker = null; // Novo marcador para a localização do usuário
+      let searchCircle = null; // Novo círculo para o raio de busca
 
-      // Definição da localização inicial fixa solicitada.
-      const initialLocation = { lat: -23.5505, lng: -46.6333 };
-
-      /**
-       * Exibe uma mensagem na tela, substituindo o uso de `alert()`.
-       * @param {string} message A mensagem a ser exibida.
-       */
-      function showMessage(message) {
-        const messageBox = document.getElementById('message-box');
-        messageBox.textContent = message;
-        messageBox.classList.add('show');
-        setTimeout(() => {
-          messageBox.classList.remove('show');
-        }, 3000); // Esconde a mensagem após 3 segundos
+      // Função para exibir a caixa de mensagem personalizada
+      function showMessage(text) {
+          const messageBox = document.getElementById('message-box');
+          const messageText = document.getElementById('message-text');
+          messageText.textContent = text;
+          messageBox.style.display = 'block';
+          document.getElementById('message-ok-button').onclick = () => {
+              messageBox.style.display = 'none';
+          };
       }
-
+      
       async function initMap() {
-        // Carrega as bibliotecas 'maps', 'marker' e 'places'.
-        const { Map, InfoWindow } = await google.maps.importLibrary("maps");
+        const { Map, InfoWindow, Circle } = await google.maps.importLibrary("maps");
         const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
-          
+        
         map = new Map(document.getElementById("map"), {
-          center: initialLocation,
+          center: { lat: -23.5505, lng: -46.6333 },
           zoom: 5,
           mapId: "DEMO_MAP_ID",
         });
@@ -165,196 +166,272 @@
           disableAutoPan: true,
         });
 
+        // Função para calcular a distância entre dois pontos (Haversine formula)
+        function getDistance(lat1, lon1, lat2, lon2) {
+          const R = 6371; // Raio da Terra em quilômetros
+          const dLat = (lat2 - lat1) * Math.PI / 180;
+          const dLon = (lon2 - lon1) * Math.PI / 180;
+          const a = 
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+          const distance = R * c;
+          return distance;
+        }
+
+        // Função para criar e adicionar marcadores/clusters com base em uma array de dados
+        function displayMarkers(dataArray) {
+          if (markerCluster) {
+            markerCluster.clearMarkers();
+          }
+
+          if (typeof dataArray !== 'undefined' && Array.isArray(dataArray)) {
+            const currentMarkers = dataArray.map((data) => {
+              const label = data.nome ? data.nome[0].toUpperCase() : '';
+              const pinGlyph = new PinElement({
+                glyph: label,
+                glyphColor: "white",
+              });
+
+              const marker = new AdvancedMarkerElement({
+                position: { lat: data.latitude, lng: data.longitude },
+                content: pinGlyph.element,
+                title: data.nome
+              });
+
+              marker.addListener("click", () => {
+                infoWindow.setContent(`<h3>${data.nome}</h3><p>${data.localizacao}</p><p>ID: ${data.id}</p>`);
+                infoWindow.open(map, marker);
+              });
+
+              return marker;
+            });
+
+            if (typeof markerClusterer !== 'undefined' && typeof markerClusterer.MarkerClusterer !== 'undefined') {
+              markerCluster = new markerClusterer.MarkerClusterer({ markers: currentMarkers, map });
+              console.log(`Total de pontos de usuário exibidos: ${dataArray.length}. Clusters aplicados.`);
+            } else {
+              console.error("Erro: MarkerClusterer não foi carregado corretamente.");
+            }
+          } else {
+            console.error("A array de dados para marcadores não foi carregada ou não é uma array válida.");
+          }
+        }
+        
+        // --- Lógica de Geocalização e Busca ---
         const searchInput = document.getElementById('search-input');
         const searchButton = document.getElementById('search-button');
         const clearButton = document.getElementById('clear-button');
         const radiusInput = document.getElementById('radius-input');
+        const currentLocationButton = document.getElementById('current-location-button');
 
         searchButton.addEventListener('click', performCommerceSearch);
         clearButton.addEventListener('click', clearSearch);
+        currentLocationButton.addEventListener('click', findUserLocation);
+        
         searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                performCommerceSearch();
-            }
+          if (e.key === 'Enter') {
+            performCommerceSearch();
+          }
         });
 
-        displayMarkers(locations);
+        function findUserLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const pos = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude,
+                        };
+                        
+                        // Limpa marcadores e círculos anteriores
+                        clearSearch();
+                        
+                        // Adiciona um marcador azul para a localização do usuário
+                        const userPinGlyph = new PinElement({
+                            glyph: 'Você',
+                            glyphColor: 'white',
+                            background: '#007BFF',
+                            borderColor: '#0056b3'
+                        });
+                        userLocationMarker = new AdvancedMarkerElement({
+                            map: map,
+                            position: pos,
+                            content: userPinGlyph.element,
+                            title: 'Sua Localização Atual'
+                        });
 
-        /**
-         * Calcula a distância entre dois pontos de coordenadas usando a fórmula de Haversine.
-         * @returns {number} A distância em quilómetros.
-         */
-        function getDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371;
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a =
-                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            const distance = R * c;
-            return distance;
-        }
+                        // Desenha um círculo para o raio de busca a partir da sua localização
+                        const searchRadius = parseFloat(radiusInput.value) * 1000; // Converte km para metros
+                        searchCircle = new Circle({
+                            strokeColor: "#FF0000",
+                            strokeOpacity: 0.8,
+                            strokeWeight: 2,
+                            fillColor: "#FF0000",
+                            fillOpacity: 0.35,
+                            map,
+                            center: pos,
+                            radius: searchRadius,
+                        });
+                        
+                        // Filtra os usuários próximos à sua localização
+                        const nearbyUsers = locations.filter(user => {
+                            const distance = getDistance(
+                                user.latitude, user.longitude,
+                                pos.lat, pos.lng
+                            );
+                            return distance <= parseFloat(radiusInput.value);
+                        });
 
-        /**
-         * Cria e adiciona marcadores/clusters com base em uma array de dados.
-         */
-        function displayMarkers(dataArray) {
-            if (markerCluster) {
-              markerCluster.clearMarkers();
-            }
+                        displayMarkers(nearbyUsers);
+                        
+                        map.setCenter(pos);
+                        map.setZoom(12);
 
-            if (typeof dataArray !== 'undefined' && Array.isArray(dataArray)) {
-              const currentMarkers = dataArray.map((data) => {
-                const label = data.nome ? data.nome[0].toUpperCase() : '';
-                const pinGlyph = new PinElement({
-                    glyph: label,
-                    glyphColor: "white",
-                });
-                
-                const marker = new AdvancedMarkerElement({
-                    position: { lat: data.latitude, lng: data.longitude },
-                    content: pinGlyph.element,
-                    title: data.nome
-                });
-                
-                marker.addListener("click", () => {
-                    infoWindow.setContent(`<h3>${data.nome}</h3><p>${data.localizacao}</p><p>ID: ${data.id}</p>`);
-                    infoWindow.open(map, marker);
-                });
-                return marker;
-              });
-
-              // Usa a API global do MarkerClusterer.
-              if (typeof MarkerClusterer !== 'undefined') {
-                markerCluster = new MarkerClusterer(map, currentMarkers, {
-                  imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
-                });
-                console.log(`Total de pontos de usuário exibidos: ${dataArray.length}. Clusters aplicados.`);
-              } else {
-                console.error("Erro: MarkerClusterer não foi carregado corretamente. Os marcadores serão exibidos sem clusters.");
-                currentMarkers.forEach(marker => marker.map = map);
-              }
+                        if (nearbyUsers.length === 0) {
+                            showMessage(`Nenhum usuário encontrado em um raio de ${radiusInput.value} km da sua localização.`);
+                        } else {
+                            console.log(`${nearbyUsers.length} usuários encontrados em um raio de ${radiusInput.value} km da sua localização.`);
+                        }
+                    },
+                    (error) => {
+                        console.error("Erro ao obter a localização: ", error);
+                        showMessage("Erro ao obter sua localização. Por favor, habilite a geolocalização no seu navegador.");
+                    }
+                );
             } else {
-              console.error("A array de dados para marcadores não foi carregada ou não é uma array válida.");
+                showMessage("Geolocalização não é suportada por este navegador.");
             }
         }
         
         async function performCommerceSearch() {
-            const searchTerm = searchInput.value.trim();
-            const searchRadius = parseFloat(radiusInput.value);
+          const searchTerm = searchInput.value.trim();
+          const searchRadius = parseFloat(radiusInput.value);
 
-            if (!searchTerm) {
-                showMessage("Por favor, digite o nome de um comércio para buscar.");
-                return;
+          if (!searchTerm) {
+            showMessage("Por favor, digite o nome de um comércio para buscar.");
+            return;
+          }
+          if (isNaN(searchRadius) || searchRadius <= 0) {
+            showMessage("Por favor, insira um raio de busca válido (número positivo).");
+            return;
+          }
+          
+          // Limpa o marcador de comércio e o círculo anterior
+          if (commerceMarker) {
+            commerceMarker.map = null;
+            commerceMarker = null;
+          }
+          if (searchCircle) {
+            searchCircle.setMap(null);
+            searchCircle = null;
+          }
+          if (userLocationMarker) {
+            userLocationMarker.map = null;
+            userLocationMarker = null;
+          }
+
+          const service = new google.maps.places.PlacesService(map);
+          const request = {
+            query: searchTerm,
+            fields: ['name', 'geometry', 'formatted_address'],
+            locationBias: map.getBounds(),
+          };
+
+          service.findPlaceFromQuery(request, (results, status) => {
+            if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
+              const place = results[0];
+              const placeLocation = place.geometry.location;
+
+              const commercePinGlyph = new PinElement({
+                glyph: 'C',
+                glyphColor: 'black',
+                background: '#FFD700',
+                borderColor: '#DAA520'
+              });
+              commerceMarker = new AdvancedMarkerElement({
+                map: map,
+                position: placeLocation,
+                content: commercePinGlyph.element,
+                title: place.name
+              });
+
+              commerceMarker.addListener("click", () => {
+                infoWindow.setContent(`<h3>Comércio: ${place.name}</h3><p>${place.formatted_address}</p>`);
+                infoWindow.open(map, commerceMarker);
+              });
+
+              // Desenha o círculo para o raio de busca a partir do comércio
+              const radiusInMeters = searchRadius * 1000;
+              searchCircle = new Circle({
+                  strokeColor: "#0000FF",
+                  strokeOpacity: 0.8,
+                  strokeWeight: 2,
+                  fillColor: "#0000FF",
+                  fillOpacity: 0.35,
+                  map,
+                  center: placeLocation,
+                  radius: radiusInMeters,
+              });
+
+              map.setCenter(placeLocation);
+              map.setZoom(12);
+
+              const nearbyUsers = locations.filter(user => {
+                const distance = getDistance(
+                  user.latitude, user.longitude,
+                  placeLocation.lat(), placeLocation.lng()
+                );
+                return distance <= searchRadius;
+              });
+
+              displayMarkers(nearbyUsers);
+              
+              if (nearbyUsers.length === 0) {
+                showMessage(`Nenhum usuário encontrado em um raio de ${searchRadius} km de "${place.name}".`);
+              } else {
+                console.log(`${nearbyUsers.length} usuários encontrados em um raio de ${searchRadius} km de "${place.name}".`);
+              }
+
+            } else {
+              showMessage(`Não foi possível encontrar o comércio "${searchTerm}". Por favor, tente refinar a busca.`);
+              clearSearch();
             }
-            if (isNaN(searchRadius) || searchRadius <= 0) {
-                showMessage("Por favor, insira um raio de busca válido (número positivo).");
-                return;
-            }
-
-            if (commerceMarker) {
-                commerceMarker.map = null;
-                commerceMarker = null;
-            }
-            if (nearbyUsersCircle) {
-                nearbyUsersCircle.setMap(null);
-                nearbyUsersCircle = null;
-            }
-            
-            const service = new google.maps.places.PlacesService(map);
-            const request = {
-                query: searchTerm,
-                fields: ['name', 'geometry', 'formatted_address'],
-                locationBias: map.getBounds(),
-            };
-
-            service.findPlaceFromQuery(request, (results, status) => {
-                if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
-                    const firstPlace = results[0];
-                    const placeLocation = firstPlace.geometry.location;
-                    
-                    const commercePinGlyph = new PinElement({
-                        glyph: 'C',
-                        glyphColor: 'black',
-                        background: '#FFD700',
-                        borderColor: '#DAA520'
-                    });
-                    
-                    commerceMarker = new AdvancedMarkerElement({
-                        map: map,
-                        position: placeLocation,
-                        content: commercePinGlyph.element,
-                        title: firstPlace.name
-                    });
-
-                    commerceMarker.addListener("click", () => {
-                        infoWindow.setContent(`<h3>Comércio: ${firstPlace.name}</h3><p>${firstPlace.formatted_address}</p>`);
-                        infoWindow.open(map, commerceMarker);
-                    });
-
-                    nearbyUsersCircle = new google.maps.Circle({
-                        strokeColor: "#FF0000",
-                        strokeOpacity: 0.8,
-                        strokeWeight: 2,
-                        fillColor: "#FF0000",
-                        fillOpacity: 0.35,
-                        map: map,
-                        center: placeLocation,
-                        radius: searchRadius * 1000 // Converte km para metros
-                    });
-
-                    map.setCenter(placeLocation);
-                    map.setZoom(12);
-
-                    const nearbyUsers = locations.filter(user => {
-                        const distance = getDistance(
-                            user.latitude, user.longitude,
-                            placeLocation.lat(), placeLocation.lng()
-                        );
-                        return distance <= searchRadius;
-                    });
-                    
-                    if (nearbyUsers.length === 0) {
-                        showMessage(`Nenhum usuário encontrado em um raio de ${searchRadius} km de "${firstPlace.name}".`);
-                    } else {
-                        showMessage(`${nearbyUsers.length} usuários encontrados em um raio de ${searchRadius} km de "${firstPlace.name}".`);
-                    }
-
-                    displayMarkers(nearbyUsers);
-
-                } else {
-                    showMessage(`Não foi possível encontrar o comércio "${searchTerm}". Por favor, tente refinar a busca.`);
-                    clearSearch();
-                }
-            });
+          });
         }
 
         function clearSearch() {
-            searchInput.value = '';
-            if (commerceMarker) {
-                commerceMarker.map = null;
-                commerceMarker = null;
-            }
-            if (nearbyUsersCircle) {
-                nearbyUsersCircle.setMap(null);
-                nearbyUsersCircle = null;
-            }
-            displayMarkers(locations);
-            map.setZoom(5);
-            map.setCenter(initialLocation);
+          searchInput.value = '';
+          if (commerceMarker) {
+            commerceMarker.map = null;
+            commerceMarker = null;
+          }
+          if (userLocationMarker) {
+            userLocationMarker.map = null;
+            userLocationMarker = null;
+          }
+          if (searchCircle) {
+            searchCircle.setMap(null);
+            searchCircle = null;
+          }
+          displayMarkers(locations);
+          map.setZoom(5);
+          map.setCenter({ lat: -23.5505, lng: -46.6333 });
         }
+
+        displayMarkers(locations);
       }
 
-      // Bootstrap da API do Google Maps
       (g => {
         var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
         key: "AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho", // <--- SUBSTITUA ESTE TEXTO PELA SUA CHAVE REAL DA API AQUI!
         v: "weekly",
-        libraries: ["maps", "marker", "places"],
+        libraries: ["maps", "marker", "places", "geometry"],
       });
 
-      window.onload = initMap;
+      initMap();
     </script>
+
+    <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
   </body>
 </html>
