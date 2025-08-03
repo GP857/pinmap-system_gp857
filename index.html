@@ -168,6 +168,9 @@
           
           try {
             console.log("[PASSO 2.1] A tentar processar os dados...");
+            // Usamos um novo escopo para evitar poluir o escopo global
+            // e garantir que a variável 'locations' seja criada aqui.
+            let locations;
             eval(scriptText);
             
             if (typeof locations !== 'undefined' && Array.isArray(locations)) {
@@ -180,9 +183,9 @@
                 showMessage("Erro ao Carregar Dados", "O ficheiro de dados foi carregado, mas a variável 'locations' não foi encontrada ou não é um array. Por favor, verifique a formatação do ficheiro.");
             }
           } catch (evalError) {
-              console.error("[ERRO DE DADOS CRÍTICO] Erro de sintaxe ao processar o ficheiro de dados:", evalError);
+              console.error("[ERRO DE SINTAXE] Erro ao processar o ficheiro de dados:", evalError);
               showLoading(false);
-              showMessage("Erro de Sintaxe", "Ocorreu um erro de sintaxe ao ler o ficheiro de dados. Por favor, verifique se o ficheiro `dados.js` está formatado corretamente.");
+              showMessage("Erro de Sintaxe", `Ocorreu um erro de sintaxe ao ler o ficheiro de dados: ${evalError.message}. Verifique a consola para mais detalhes.`);
           }
 
         } catch (fetchError) {
