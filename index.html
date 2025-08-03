@@ -3,111 +3,106 @@
   <head>
     <title>Mapa com Busca de Comércio e Usuários Próximos</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- Tailwind CSS CDN para um estilo moderno e responsivo -->
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
       html, body {
         height: 100%;
         margin: 0;
         padding: 0;
-        font-family: 'Inter', sans-serif;
+        font-family: Arial, sans-serif;
       }
       #map {
         height: 100%;
         width: 100%;
       }
-      /* Estilos para a caixa de mensagem personalizada */
-      #message-box {
-        position: fixed;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        background-color: #333;
-        color: white;
-        padding: 12px 24px;
+      #search-container {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background-color: white;
+        padding: 10px;
         border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        z-index: 20;
-        opacity: 0;
-        visibility: hidden;
-        transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        z-index: 10;
+        display: flex;
+        flex-direction: column; /* Para empilhar elementos */
+        gap: 5px;
       }
-      #message-box.show {
-        opacity: 1;
-        visibility: visible;
+      #search-input {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        width: 250px;
+      }
+      .button-group {
+        display: flex;
+        gap: 5px;
+      }
+      #search-button {
+        padding: 8px 12px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      #search-button:hover {
+        background-color: #45a049;
+      }
+      #clear-button {
+        padding: 8px 12px;
+        background-color: #f44336;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      #clear-button:hover {
+        background-color: #da190b;
+      }
+      #radius-input {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        width: 100px;
+      }
+      #radius-label {
+        font-size: 0.9em;
+        color: #555;
       }
     </style>
   </head>
   <body>
     <div id="map"></div>
 
-    <div id="search-container" class="absolute top-4 left-4 z-10 bg-white p-4 rounded-lg shadow-lg flex flex-col gap-3 max-w-sm w-11/12 md:w-auto">
-      <input type="text" id="search-input" placeholder="Buscar comércio (ex: 'Padaria')" class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-      <div class="flex flex-col md:flex-row gap-2">
-        <button id="search-button" class="flex-1 py-2 px-4 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors duration-200">Buscar Comércio</button>
-        <button id="clear-button" class="flex-1 py-2 px-4 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors duration-200">Limpar Busca</button>
+    <div id="search-container">
+      <input type="text" id="search-input" placeholder="Buscar comércio (ex: 'Padaria')">
+      <div class="button-group">
+        <button id="search-button">Buscar Comércio</button>
+        <button id="clear-button">Limpar Busca</button>
       </div>
-      <div class="flex items-center gap-2">
-        <label id="radius-label" for="radius-input" class="text-sm text-gray-600 whitespace-nowrap">Raio de busca (km):</label>
-        <input type="number" id="radius-input" value="5" min="1" max="100" class="flex-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <div>
+        <label id="radius-label" for="radius-input">Raio de busca (km):</label>
+        <input type="number" id="radius-input" value="5" min="1" max="100">
       </div>
     </div>
-    
-    <!-- Caixa de mensagem personalizada -->
-    <div id="message-box"></div>
 
-    <!-- Script principal com a lógica do mapa -->
+    <script src="./dados.js"></script>
+
     <script>
       let map;
-      let markerCluster;
-      let commerceMarker = null;
-
-      // O array 'locations' foi movido para aqui para garantir que esteja definido
-      // e evitar o erro "ReferenceError: locations is not defined".
-      const locations = [
-        // Exemplo de dados de usuários na região de São Paulo
-        { id: 1, nome: "João Silva", localizacao: "Bairro A, São Paulo", latitude: -23.5489, longitude: -46.6388 },
-        { id: 2, nome: "Maria Oliveira", localizacao: "Bairro B, São Paulo", latitude: -23.5555, longitude: -46.6340 },
-        { id: 3, nome: "Pedro Souza", localizacao: "Bairro C, São Paulo", latitude: -23.565, longitude: -46.645 },
-        { id: 4, nome: "Ana Santos", localizacao: "Bairro D, São Paulo", latitude: -23.585, longitude: -46.655 },
-        { id: 5, nome: "Carlos Lima", localizacao: "Bairro E, São Paulo", latitude: -23.570, longitude: -46.620 },
-        { id: 6, nome: "Fernanda Costa", localizacao: "Bairro F, Campinas", latitude: -22.9099, longitude: -47.0626 },
-        { id: 7, nome: "Ricardo Gomes", localizacao: "Bairro G, Campinas", latitude: -22.9019, longitude: -47.0599 },
-        { id: 8, nome: "Paula Mendes", localizacao: "Bairro H, Rio de Janeiro", latitude: -22.9068, longitude: -43.1729 },
-        { id: 9, nome: "Lucas Fernandes", localizacao: "Bairro I, Rio de Janeiro", latitude: -22.915, longitude: -43.190 },
-      ];
-
-      /**
-       * Exibe uma mensagem na tela, substituindo o uso de `alert()`.
-       * @param {string} message A mensagem a ser exibida.
-       */
-      function showMessage(message) {
-        const messageBox = document.getElementById('message-box');
-        messageBox.textContent = message;
-        messageBox.classList.add('show');
-        setTimeout(() => {
-          messageBox.classList.remove('show');
-        }, 3000); // Esconde a mensagem após 3 segundos
-      }
+      let markerCluster; // Variável para armazenar a instância do MarkerClusterer
+      let commerceMarker = null; // Marcador para o comércio encontrado
 
       async function initMap() {
-        // --- IMPORTANTE: SUBSTITUA 'YOUR_API_KEY_HERE' PELA SUA CHAVE DE API REAL ---
-        const apiKey = "AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho";
-        if (apiKey === "AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho") {
-          const errorMessage = "Erro: Chave da API do Google Maps ausente. Por favor, substitua 'YOUR_API_KEY_HERE' pela sua chave real no script.";
-          showMessage(errorMessage);
-          console.error(errorMessage);
-          return; // Interrompe a execução do mapa se a chave estiver ausente
-        }
-
         // Carrega as bibliotecas 'maps', 'marker' e 'places'
         const { Map, InfoWindow } = await google.maps.importLibrary("maps");
         const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
-          
+        // Não precisamos importar 'places' aqui diretamente, mas ela deve estar na lista de libraries no bootstrap
+        
         map = new Map(document.getElementById("map"), {
           center: { lat: -23.5505, lng: -46.6333 }, // Centraliza em São Paulo, Brasil
-          zoom: 5,
-          mapId: "DEMO_MAP_ID",
+          zoom: 5, // Nível de zoom inicial
+          mapId: "DEMO_MAP_ID", // ID de um mapa de demonstração (opcional)
         });
 
         const infoWindow = new InfoWindow({
@@ -115,30 +110,20 @@
           disableAutoPan: true,
         });
 
-        /**
-         * Calcula a distância entre dois pontos de coordenadas (fórmula de Haversine).
-         * @param {number} lat1 Latitude do primeiro ponto.
-         * @param {number} lon1 Longitude do primeiro ponto.
-         * @param {number} lat2 Latitude do segundo ponto.
-         * @param {number} lon2 Longitude do segundo ponto.
-         * @returns {number} A distância em quilômetros.
-         */
+        // Função para calcular a distância entre dois pontos (Haversine formula)
         function getDistance(lat1, lon1, lat2, lon2) {
             const R = 6371; // Raio da Terra em quilômetros
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a =
+            const a = 
                 Math.sin(dLat / 2) * Math.sin(dLat / 2) +
                 Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            const distance = R * c;
+            const distance = R * c; // Distância em km
             return distance;
         }
 
-        /**
-         * Exibe marcadores no mapa e aplica o agrupamento (clustering).
-         * @param {Array<Object>} dataArray Array de objetos de localização para exibir.
-         */
+        // Função para criar e adicionar marcadores/clusters com base em uma array de dados
         function displayMarkers(dataArray) {
           if (markerCluster) {
             markerCluster.clearMarkers();
@@ -196,51 +181,52 @@
             const searchRadius = parseFloat(radiusInput.value);
 
             if (!searchTerm) {
-                showMessage("Por favor, digite o nome de um comércio para buscar.");
+                alert("Por favor, digite o nome de um comércio para buscar.");
                 return;
             }
             if (isNaN(searchRadius) || searchRadius <= 0) {
-                showMessage("Por favor, insira um raio de busca válido (número positivo).");
+                alert("Por favor, insira um raio de busca válido (número positivo).");
                 return;
             }
 
             // Limpa o marcador de comércio anterior, se houver
             if (commerceMarker) {
-                commerceMarker.map = null;
+                commerceMarker.map = null; // Remove do mapa
                 commerceMarker = null;
             }
-              
+            
+            // Centraliza a busca do Google Maps na visão atual do mapa para relevância
+            const mapCenter = map.getCenter();
+            const queryLocationBias = `${mapCenter.lat()},${mapCenter.lng()}`;
+
+            // Usa a API de Geocodificação (ou Places API) para encontrar o comércio
+            // Para simplificar, vamos usar google.maps.places.PlacesService.findPlaceFromQuery
+            // que é mais direto para "buscar um lugar".
+            // Nota: Esta abordagem requer a biblioteca 'places' no bootstrap da API.
+
             const service = new google.maps.places.PlacesService(map);
             const request = {
                 query: searchTerm,
                 fields: ['name', 'geometry', 'formatted_address'],
-                locationBias: map.getBounds(),
+                locationBias: map.getBounds(), // Prioriza resultados dentro da área visível do mapa
             };
 
             service.findPlaceFromQuery(request, (results, status) => {
                 if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
-                    const place = results[0];
+                    const place = results[0]; // Pega o primeiro resultado
                     const placeLocation = place.geometry.location;
 
-                    // Marcador de comércio personalizado com um ícone
-                    const commercePin = new PinElement({
-                      background: '#FFD700',
-                      borderColor: '#DAA520',
+                    // Adiciona um marcador para o comércio encontrado
+                    const commercePinGlyph = new PinElement({
+                        glyph: 'C', // 'C' para Comércio
+                        glyphColor: 'black',
+                        background: '#FFD700', // Cor amarela para o comércio
+                        borderColor: '#DAA520'
                     });
-
-                    const commerceMarkerContent = document.createElement('div');
-                    commerceMarkerContent.innerHTML = `
-                      <div class="relative w-8 h-8 rounded-full bg-yellow-400 border-2 border-yellow-600 flex items-center justify-center shadow-md">
-                        <svg class="w-5 h-5 text-yellow-900" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                          <path fill-rule="evenodd" d="M10 2a8 8 0 100 16A8 8 0 0010 2zM8.707 6.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293a1 1 0 000-1.414z" clip-rule="evenodd"></path>
-                        </svg>
-                      </div>
-                    `;
-
                     commerceMarker = new AdvancedMarkerElement({
                         map: map,
                         position: placeLocation,
-                        content: commerceMarkerContent,
+                        content: commercePinGlyph.element,
                         title: place.name
                     });
 
@@ -249,9 +235,11 @@
                         infoWindow.open(map, commerceMarker);
                     });
 
+                    // Centraliza o mapa no comércio encontrado
                     map.setCenter(placeLocation);
-                    map.setZoom(12);
+                    map.setZoom(12); // Zoom mais próximo para ver o comércio
 
+                    // Filtra os usuários próximos ao comércio
                     const nearbyUsers = locations.filter(user => {
                         const distance = getDistance(
                             user.latitude, user.longitude,
@@ -260,30 +248,30 @@
                         return distance <= searchRadius;
                     });
 
-                    displayMarkers(nearbyUsers);
+                    displayMarkers(nearbyUsers); // Exibe apenas os usuários próximos
                     
                     if (nearbyUsers.length === 0) {
-                        showMessage(`Nenhum usuário encontrado em um raio de ${searchRadius} km de "${place.name}".`);
+                        alert(`Nenhum usuário encontrado em um raio de ${searchRadius} km de "${place.name}".`);
                     } else {
-                        showMessage(`${nearbyUsers.length} usuários encontrados em um raio de ${searchRadius} km de "${place.name}".`);
                         console.log(`${nearbyUsers.length} usuários encontrados em um raio de ${searchRadius} km de "${place.name}".`);
                     }
+
                 } else {
-                    showMessage(`Não foi possível encontrar o comércio "${searchTerm}". Por favor, tente refinar a busca.`);
-                    clearSearch();
+                    alert(`Não foi possível encontrar o comércio "${searchTerm}". Por favor, tente refinar a busca.`);
+                    clearSearch(); // Volta ao estado inicial se não encontrar
                 }
             });
         }
 
         function clearSearch() {
-            searchInput.value = '';
+            searchInput.value = ''; // Limpa o campo de busca
             if (commerceMarker) {
-                commerceMarker.map = null;
+                commerceMarker.map = null; // Remove o marcador do comércio
                 commerceMarker = null;
             }
-            displayMarkers(locations);
-            map.setZoom(5);
-            map.setCenter({ lat: -23.5505, lng: -46.6333 });
+            displayMarkers(locations); // Mostra todos os pontos de usuário novamente
+            map.setZoom(5); // Volta ao zoom inicial
+            map.setCenter({ lat: -23.5505, lng: -46.6333 }); // Volta ao centro inicial
         }
 
         // Inicializa o mapa exibindo todos os pontos de usuário ao carregar
@@ -293,17 +281,15 @@
       // Bootstrap da API do Google Maps
       (g => {
         var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
-        // --- IMPORTANTE: SUBSTITUA 'YOUR_API_KEY_HERE' PELA SUA CHAVE DE API REAL ---
-        key: "AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho",
+        key: "AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho", // <--- SUBSTITUA ESTE TEXTO PELA SUA CHAVE REAL DA API AQUI!
         v: "weekly",
-        libraries: ["maps", "marker", "places"],
+        libraries: ["maps", "marker", "places"], // <--- AGORA INCLUIMOS "places" AQUI!
       });
 
       initMap();
     </script>
 
-    <!-- MarkerClusterer library -->
     <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
-      
+    
   </body>
 </html>
