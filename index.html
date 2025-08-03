@@ -168,22 +168,20 @@
           
           try {
             console.log("[PASSO 2.1] A tentar processar os dados...");
-            // Usamos um novo escopo para evitar poluir o escopo global
-            // e garantir que a variável 'locations' seja criada aqui.
-            let locations;
             eval(scriptText);
             
+            // Verifica se a variável 'locations' foi criada no escopo global
             if (typeof locations !== 'undefined' && Array.isArray(locations)) {
                 locationsData = locations;
                 console.log(`[PASSO 3] Variável 'locations' encontrada e processada. ${locationsData.length} pontos carregados.`);
                 loadGoogleMapsAPI();
             } else {
-                console.error("[ERRO DE DADOS] A variável 'locations' não foi encontrada ou não é um array.");
+                console.error("[ERRO DE DADOS] A variável 'locations' não foi encontrada ou não é um array. Por favor, verifique se o seu ficheiro `dados.js` está a declarar `var locations = [...]` ou `const locations = [...]`.");
                 showLoading(false);
                 showMessage("Erro ao Carregar Dados", "O ficheiro de dados foi carregado, mas a variável 'locations' não foi encontrada ou não é um array. Por favor, verifique a formatação do ficheiro.");
             }
           } catch (evalError) {
-              console.error("[ERRO DE SINTAXE] Erro ao processar o ficheiro de dados:", evalError);
+              console.error("[ERRO DE SINTAXE CRÍTICO] Erro de sintaxe ao processar o ficheiro de dados:", evalError);
               showLoading(false);
               showMessage("Erro de Sintaxe", `Ocorreu um erro de sintaxe ao ler o ficheiro de dados: ${evalError.message}. Verifique a consola para mais detalhes.`);
           }
