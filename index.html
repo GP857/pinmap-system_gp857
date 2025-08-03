@@ -1,405 +1,235 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Mapa com Localização e Busca Simples</title>
+    <title>Mapa com Busca de Comércio e Usuários Próximos</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Tailwind CSS CDN para um estilo moderno e responsivo -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
       html, body {
         height: 100%;
         margin: 0;
         padding: 0;
-        font-family: Arial, sans-serif;
+        font-family: 'Inter', sans-serif;
       }
       #map {
         height: 100%;
         width: 100%;
       }
-      #controls-container {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        background-color: white;
-        padding: 10px;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        z-index: 10;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
-      #search-input {
-        padding: 8px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        width: 250px;
-      }
-      .button-group {
-        display: flex;
-        gap: 5px;
-      }
-      button {
-        padding: 8px 12px;
-        background-color: #4CAF50;
+      /* Estilos para a caixa de mensagem personalizada */
+      #message-box {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #333;
         color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
+        padding: 12px 24px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 20;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
       }
-      button:hover {
-        background-color: #45a049;
-      }
-      #clear-button {
-        background-color: #f44336;
-      }
-      #clear-button:hover {
-        background-color: #da190b;
-      }
-      #my-location-button {
-        background-color: #2196F3;
-      }
-      #my-location-button:hover {
-        background-color: #0b7dda;
-      }
-      #radius-label {
-        font-size: 0.9em;
-        color: #555;
-      }
-      /* Estilo para o modal de mensagem */
-      #message-modal {
-          display: none; /* Escondido por padrão */
-          position: fixed;
-          inset: 0; /* Cobre toda a janela */
-          background-color: rgba(0, 0, 0, 0.5); /* Fundo semi-transparente */
-          align-items: center;
-          justify-content: center;
-          z-index: 50;
-      }
-      #message-modal > div {
-          background-color: white;
-          padding: 24px;
-          border-radius: 8px;
-          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
-          max-width: 400px;
-          width: 90%;
-      }
-      .hidden {
-          display: none !important;
-      }
-      #loading-overlay {
-          display: none;
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background-color: rgba(255, 255, 255, 0.7);
-          z-index: 100;
-          justify-content: center;
-          align-items: center;
-          font-size: 1.5em;
-          color: #333;
+      #message-box.show {
+        opacity: 1;
+        visibility: visible;
       }
     </style>
   </head>
   <body>
     <div id="map"></div>
 
-    <div id="controls-container">
-      <div class="button-group">
-        <button id="my-location-button">Meu Local</button>
+    <div id="search-container" class="absolute top-4 left-4 z-10 bg-white p-4 rounded-lg shadow-lg flex flex-col gap-3 max-w-sm w-11/12 md:w-auto">
+      <input type="text" id="search-input" placeholder="Buscar comércio (ex: 'Padaria')" class="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <div class="flex flex-col md:flex-row gap-2">
+        <button id="search-button" class="flex-1 py-2 px-4 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors duration-200">Buscar Comércio</button>
+        <button id="clear-button" class="flex-1 py-2 px-4 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors duration-200">Limpar Busca</button>
       </div>
-      <input type="text" id="search-input" placeholder="Buscar local ou comércio (ex: 'Rua Principal')">
-      <div class="button-group">
-        <button id="clear-button">Limpar Busca</button>
+      <div class="flex items-center gap-2">
+        <label id="radius-label" for="radius-input" class="text-sm text-gray-600 whitespace-nowrap">Raio de busca (km):</label>
+        <input type="number" id="radius-input" value="5" min="1" max="100" class="flex-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
       </div>
-    </div>
-
-    <!-- Loading overlay -->
-    <div id="loading-overlay" class="hidden">
-        A carregar...
     </div>
     
-    <!-- Modal de Mensagem Personalizado -->
-    <div id="message-modal" class="hidden">
-        <div>
-            <h3 id="message-title" class="font-bold text-lg mb-2"></h3>
-            <p id="message-content" class="text-sm text-gray-700 mb-4"></p>
-            <div style="display: flex; justify-content: flex-end;">
-                <button onclick="document.getElementById('message-modal').classList.add('hidden')"
-                        style="padding: 8px 16px; background-color: #2196F3; color: white; border-radius: 4px; border: none; cursor: pointer;">
-                    OK
-                </button>
-            </div>
-        </div>
-    </div>
+    <!-- Caixa de mensagem personalizada -->
+    <div id="message-box"></div>
 
+    <!-- Script principal com a lógica do mapa -->
     <script>
-      // Variável global para armazenar os dados de localização
-      let locationsData = [];
       let map;
       let markerCluster;
-      let userLocationMarker = null;
-      let userLocationCoords = null;
-      
-      function showMessage(title, content) {
-          document.getElementById('message-title').innerText = title;
-          document.getElementById('message-content').innerText = content;
-          document.getElementById('message-modal').classList.remove('hidden');
-      }
+      let commerceMarker = null;
 
-      function showLoading(show) {
-          document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
-      }
+      // O array 'locations' foi movido para aqui para garantir que esteja definido
+      // e evitar o erro "ReferenceError: locations is not defined".
+      const locations = [
+        // Exemplo de dados de usuários na região de São Paulo
+        { id: 1, nome: "João Silva", localizacao: "Bairro A, São Paulo", latitude: -23.5489, longitude: -46.6388 },
+        { id: 2, nome: "Maria Oliveira", localizacao: "Bairro B, São Paulo", latitude: -23.5555, longitude: -46.6340 },
+        { id: 3, nome: "Pedro Souza", localizacao: "Bairro C, São Paulo", latitude: -23.565, longitude: -46.645 },
+        { id: 4, nome: "Ana Santos", localizacao: "Bairro D, São Paulo", latitude: -23.585, longitude: -46.655 },
+        { id: 5, nome: "Carlos Lima", localizacao: "Bairro E, São Paulo", latitude: -23.570, longitude: -46.620 },
+        { id: 6, nome: "Fernanda Costa", localizacao: "Bairro F, Campinas", latitude: -22.9099, longitude: -47.0626 },
+        { id: 7, nome: "Ricardo Gomes", localizacao: "Bairro G, Campinas", latitude: -22.9019, longitude: -47.0599 },
+        { id: 8, nome: "Paula Mendes", localizacao: "Bairro H, Rio de Janeiro", latitude: -22.9068, longitude: -43.1729 },
+        { id: 9, nome: "Lucas Fernandes", localizacao: "Bairro I, Rio de Janeiro", latitude: -22.915, longitude: -43.190 },
+      ];
 
-      // Função para carregar os dados do GitHub
-      async function loadDataAndInitMap() {
-        showLoading(true);
-        const githubDataUrl = "https://raw.githubusercontent.com/GP857/pinmap-system_gp857/main/dados.js";
-        console.log(`[PASSO 1] A tentar carregar dados do URL: ${githubDataUrl}`);
-        
-        try {
-          const response = await fetch(githubDataUrl);
-          if (!response.ok) {
-            throw new Error(`Erro HTTP! status: ${response.status}`);
-          }
-          
-          const scriptText = await response.text();
-          console.log("[PASSO 2] Ficheiro de dados do GitHub obtido com sucesso.");
-          
-          try {
-            console.log("[PASSO 2.1] A tentar processar os dados...");
-            eval(scriptText);
-            
-            // Verifica se a variável 'locations' foi criada no escopo global
-            if (typeof locations !== 'undefined' && Array.isArray(locations)) {
-                locationsData = locations;
-                console.log(`[PASSO 3] Variável 'locations' encontrada e processada. ${locationsData.length} pontos carregados.`);
-                loadGoogleMapsAPI();
-            } else {
-                console.error("[ERRO DE DADOS] A variável 'locations' não foi encontrada ou não é um array. Por favor, verifique se o seu ficheiro `dados.js` está a declarar `var locations = [...]` ou `const locations = [...]`.");
-                showLoading(false);
-                showMessage("Erro ao Carregar Dados", "O ficheiro de dados foi carregado, mas a variável 'locations' não foi encontrada ou não é um array. Por favor, verifique a formatação do ficheiro.");
-            }
-          } catch (evalError) {
-              console.error("[ERRO DE SINTAXE CRÍTICO] Erro de sintaxe ao processar o ficheiro de dados:", evalError);
-              showLoading(false);
-              showMessage("Erro de Sintaxe", `Ocorreu um erro de sintaxe ao ler o ficheiro de dados: ${evalError.message}. Verifique a consola para mais detalhes.`);
-          }
-
-        } catch (fetchError) {
-          console.error("[ERRO DE REDE] Falha ao carregar o ficheiro de dados do GitHub:", fetchError);
-          showLoading(false);
-          showMessage("Erro de Rede", `Não foi possível carregar o ficheiro de dados do GitHub. Erro: ${fetchError.message}`);
-        }
+      /**
+       * Exibe uma mensagem na tela, substituindo o uso de `alert()`.
+       * @param {string} message A mensagem a ser exibida.
+       */
+      function showMessage(message) {
+        const messageBox = document.getElementById('message-box');
+        messageBox.textContent = message;
+        messageBox.classList.add('show');
+        setTimeout(() => {
+          messageBox.classList.remove('show');
+        }, 3000); // Esconde a mensagem após 3 segundos
       }
 
       async function initMap() {
-        try {
-          console.log("[PASSO 5] initMap() foi iniciado.");
-          const { Map, InfoWindow } = await google.maps.importLibrary("maps");
-          const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
-          
-          map = new Map(document.getElementById("map"), {
-            center: { lat: -22.9068, lng: -47.0616 }, // Centraliza em Campinas, Brasil
-            zoom: 10,
-            mapId: "DEMO_MAP_ID",
-          });
-
-          const infoWindow = new InfoWindow({
-            content: "",
-            disableAutoPan: true,
-          });
-
-          function displayMarkers(dataArray) {
-            if (markerCluster) {
-              markerCluster.clearMarkers();
-            }
-
-            if (!dataArray || dataArray.length === 0) {
-              console.warn("Nenhum dado para exibir marcadores.");
-              return;
-            }
-
-            const currentMarkers = dataArray.map((data) => {
-              const pinGlyph = new PinElement({
-                glyph: String(data.id),
-                glyphColor: "white",
-                background: '#007bff'
-              });
-
-              const marker = new AdvancedMarkerElement({
-                position: { lat: data.latitude, lng: data.longitude },
-                content: pinGlyph.element,
-                title: data.nome
-              });
-
-              marker.addListener("click", () => {
-                infoWindow.setContent(`<h3>${data.nome}</h3><p>${data.localizacao}</p><p>ID: ${data.id}</p><p>${data.descricao}</p>`);
-                infoWindow.open(map, marker);
-              });
-
-              return marker;
-            });
-
-            if (typeof markerClusterer !== 'undefined' && typeof markerClusterer.MarkerClusterer !== 'undefined') {
-                markerCluster = new markerClusterer.MarkerClusterer({ markers: currentMarkers, map });
-                console.log(`Total de pontos de utilizador exibidos: ${dataArray.length}. Clusters aplicados.`);
-            } else {
-                console.error("Erro: MarkerClusterer não foi carregado corretamente ou não está acessível como 'markerClusterer.MarkerClusterer'.");
-            }
-          }
-
-          const myLocationButton = document.getElementById('my-location-button');
-          myLocationButton.addEventListener('click', findMyLocation);
-
-          function findMyLocation() {
-              showLoading(true);
-              if (navigator.geolocation) {
-                  navigator.geolocation.getCurrentPosition(
-                      async (position) => {
-                          showLoading(false);
-                          const pos = {
-                              lat: position.coords.latitude,
-                              lng: position.coords.longitude,
-                          };
-                          userLocationCoords = pos;
-
-                          if (userLocationMarker) {
-                              userLocationMarker.map = null;
-                          }
-
-                          const userPinGlyph = new PinElement({
-                              background: '#007bff',
-                              borderColor: '#0056b3'
-                          });
-
-                          userLocationMarker = new AdvancedMarkerElement({
-                              map: map,
-                              position: pos,
-                              content: userPinGlyph.element,
-                              title: "Sua Localização Atual"
-                          });
-
-                          map.setCenter(pos);
-                          map.setZoom(15);
-                          showMessage("Sua Localização", `Você está em: Lat: ${pos.lat.toFixed(4)}, Lng: ${pos.lng.toFixed(4)}`);
-                      },
-                      (error) => {
-                          showLoading(false);
-                          let errorMessage;
-                          if (error && error.code) { 
-                              if (error.code === error.PERMISSION_DENIED) {
-                                  errorMessage = "A permissão para aceder à sua localização foi negada. Por favor, permita o acesso nas definições do seu navegador.";
-                              } else if (error.code === error.POSITION_UNAVAILABLE) {
-                                  errorMessage = "A sua localização não está disponível. Por favor, verifique as suas definições de localização.";
-                              } else if (error.code === error.TIMEOUT) {
-                                  errorMessage = "O pedido para obter a sua localização expirou. Por favor, tente novamente.";
-                              }
-                          } else {
-                              errorMessage = "Ocorreu um erro desconhecido ao tentar obter a sua localização. Por favor, verifique a sua conexão ou tente novamente mais tarde.";
-                          }
-                          showMessage("Erro de Localização", errorMessage);
-                      },
-                      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-                  );
-              } else {
-                  showLoading(false);
-                  showMessage("Erro de Localização", "Geolocalização não é suportada por este navegador.");
-              }
-          }
-
-          const searchInput = document.getElementById('search-input');
-          const clearButton = document.getElementById('clear-button');
-
-          clearButton.addEventListener('click', clearSearch);
-          searchInput.addEventListener('keypress', (e) => {
-              if (e.key === 'Enter' || e.keyCode === 13) {
-                  performSimpleSearch();
-              }
-          });
-          
-          function performSimpleSearch() {
-              const searchTerm = searchInput.value.trim().toLowerCase();
-              if (!searchTerm) {
-                  clearSearch();
-                  return;
-              }
-
-              const filteredLocations = locationsData.filter(loc => 
-                  loc.nome.toLowerCase().includes(searchTerm) || 
-                  loc.localizacao.toLowerCase().includes(searchTerm) || 
-                  loc.cidade.toLowerCase().includes(searchTerm)
-              );
-              
-              if (filteredLocations.length > 0) {
-                  displayMarkers(filteredLocations);
-                  showMessage("Resultados da Busca", `${filteredLocations.length} pontos encontrados.`);
-              } else {
-                  displayMarkers([]);
-                  showMessage("Resultados da Busca", "Nenhum ponto encontrado com o termo de busca.");
-              }
-          }
-
-          function clearSearch() {
-              searchInput.value = '';
-              
-              if (userLocationMarker) {
-                  userLocationMarker.setMap(null);
-                  userLocationMarker = null;
-                  userLocationCoords = null;
-              }
-              
-              displayMarkers(locationsData);
-              map.setZoom(10);
-              map.setCenter({ lat: -22.9068, lng: -47.0616 });
-              showMessage("Busca Limpa", "Todos os pontos foram restaurados.");
-          }
-
-          // Carregar todos os pontos por padrão
-          displayMarkers(locationsData);
-          showLoading(false);
-
-        } catch (error) {
-          console.error("[ERRO CRÍTICO] Erro fatal na inicialização do mapa:", error);
-          showLoading(false);
-          showMessage("Erro Crítico", "O mapa não pode ser inicializado. Por favor, verifique a sua chave de API e tente novamente.");
+        // Verifica se a chave da API foi substituída
+        const apiKey = "AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho";
+        if (apiKey === "AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho") {
+          const errorMessage = "Erro: Chave da API do Google Maps ausente. Por favor, substitua 'YOUR_API_KEY_HERE' pela sua chave real no script.";
+          showMessage(errorMessage);
+          console.error(errorMessage);
+          return; // Interrompe a execução do mapa se a chave estiver ausente
         }
-      } // Fim da função initMap()
 
-      function loadGoogleMapsAPI() {
-          console.log("[PASSO 4] A tentar carregar a Google Maps API...");
-          const script = document.createElement('script');
-          // !!! ATENÇÃO: SUBSTITUA 'SUA_CHAVE_AQUI' PELA SUA CHAVE REAL E VÁLIDA DO GOOGLE MAPS. !!!
-          const apiKey = "AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho";
-          if (apiKey === "AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho" || apiKey === "") {
-              console.error("[ERRO DE API] A chave da API do Google Maps não foi fornecida. Por favor, substitua 'SUA_CHAVE_AQUI' pela sua chave real.");
-              showMessage("Chave de API em Falta", "Por favor, insira a sua chave da API do Google Maps no código para que o mapa possa carregar.");
-              showLoading(false);
-              return;
+        // Carrega as bibliotecas 'maps', 'marker' e 'places'
+        const { Map, InfoWindow } = await google.maps.importLibrary("maps");
+        const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
+          
+        map = new Map(document.getElementById("map"), {
+          center: { lat: -23.5505, lng: -46.6333 }, // Centraliza em São Paulo, Brasil
+          zoom: 5,
+          mapId: "DEMO_MAP_ID",
+        });
+
+        const infoWindow = new InfoWindow({
+          content: "",
+          disableAutoPan: true,
+        });
+
+        /**
+         * Calcula a distância entre dois pontos de coordenadas (fórmula de Haversine).
+         * @param {number} lat1 Latitude do primeiro ponto.
+         * @param {number} lon1 Longitude do primeiro ponto.
+         * @param {number} lat2 Latitude do segundo ponto.
+         * @param {number} lon2 Longitude do segundo ponto.
+         * @returns {number} A distância em quilômetros.
+         */
+        function getDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Raio da Terra em quilômetros
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a =
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            const distance = R * c;
+            return distance;
+        }
+
+        /**
+         * Exibe marcadores no mapa e aplica o agrupamento (clustering).
+         * @param {Array<Object>} dataArray Array de objetos de localização para exibir.
+         */
+        function displayMarkers(dataArray) {
+          if (markerCluster) {
+            markerCluster.clearMarkers();
           }
-          script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&v=weekly&libraries=maps,marker,places,geocoding`;
-          script.async = true; 
-          script.defer = true;
 
-          script.onload = () => {
-              console.log("[PASSO 4.1] Google Maps API carregada com sucesso!");
-              initMap();
-          };
+          if (typeof dataArray !== 'undefined' && Array.isArray(dataArray)) {
+              const currentMarkers = dataArray.map((data) => {
+                const label = data.nome ? data.nome[0].toUpperCase() : '';
+                const pinGlyph = new PinElement({
+                  glyph: label,
+                  glyphColor: "white",
+                });
 
-          script.onerror = (e) => {
-              console.error("[ERRO DE API] Erro ao carregar a Google Maps API:", e);
-              showLoading(false);
-              showMessage("Erro de API", "Não foi possível carregar o mapa. Por favor, verifique a sua chave de API e a sua ligação à internet.");
-          };
+                const marker = new AdvancedMarkerElement({
+                  position: { lat: data.latitude, lng: data.longitude },
+                  content: pinGlyph.element,
+                  title: data.nome
+                });
 
-          document.head.appendChild(script);
-      }
+                marker.addListener("click", () => {
+                  infoWindow.setContent(`<h3>${data.nome}</h3><p>${data.localizacao}</p><p>ID: ${data.id}</p>`);
+                  infoWindow.open(map, marker);
+                });
 
-      document.addEventListener('DOMContentLoaded', loadDataAndInitMap);
+                return marker;
+              });
 
-    </script>
+              if (typeof markerClusterer !== 'undefined' && typeof markerClusterer.MarkerClusterer !== 'undefined') {
+                  markerCluster = new markerClusterer.MarkerClusterer({ markers: currentMarkers, map });
+                  console.log(`Total de pontos de usuário exibidos: ${dataArray.length}. Clusters aplicados.`);
+              } else {
+                  console.error("Erro: MarkerClusterer não foi carregado corretamente ou não está acessível como 'markerClusterer.MarkerClusterer'.");
+              }
+          } else {
+              console.error("A array de dados para marcadores não foi carregada ou não é uma array válida.");
+          }
+        }
 
-    <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
-    
-  </body>
-</html>
+        // --- Lógica de Busca por Comércio ---
+        const searchInput = document.getElementById('search-input');
+        const searchButton = document.getElementById('search-button');
+        const clearButton = document.getElementById('clear-button');
+        const radiusInput = document.getElementById('radius-input');
+
+        searchButton.addEventListener('click', performCommerceSearch);
+        clearButton.addEventListener('click', clearSearch);
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                performCommerceSearch();
+            }
+        });
+
+        async function performCommerceSearch() {
+            const searchTerm = searchInput.value.trim();
+            const searchRadius = parseFloat(radiusInput.value);
+
+            if (!searchTerm) {
+                showMessage("Por favor, digite o nome de um comércio para buscar.");
+                return;
+            }
+            if (isNaN(searchRadius) || searchRadius <= 0) {
+                showMessage("Por favor, insira um raio de busca válido (número positivo).");
+                return;
+            }
+
+            // Limpa o marcador de comércio anterior, se houver
+            if (commerceMarker) {
+                commerceMarker.map = null;
+                commerceMarker = null;
+            }
+              
+            const service = new google.maps.places.PlacesService(map);
+            const request = {
+                query: searchTerm,
+                fields: ['name', 'geometry', 'formatted_address'],
+                locationBias: map.getBounds(),
+            };
+
+            service.findPlaceFromQuery(request, (results, status) => {
+                if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
+                    const place = results[0];
+                    const placeLocation = place.geometry.location;
+
+                    // Marcador de comércio personalizado com um ícone
+                    const commercePin = new PinElement({
+                      background: '#FFD700',
+                      borderColor: '#DAA520',
+                    });
+
+                    const commerceMarkerContent = document.createElement('div');
+                    commerceMarkerContent.innerHTML = `
+                      <div class="relative w-8 h-8 rounded-full bg-yellow-400 border-2 border-yellow-600 flex items-center justify-center shadow-md">
+                        <svg class="w-5 h-5 text-yellow-900" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                          <path fill-rule="evenodd" d="M10 2a8 8 0 100 16A8 8 0 0010 2zM8.707 6.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293a1 1 0 000-1.414z" c
