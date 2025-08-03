@@ -158,9 +158,7 @@
         console.log(`[PASSO 1] A tentar carregar dados do URL: ${githubDataUrl}`);
         
         try {
-          // Usa fetch para obter o conteúdo do ficheiro de dados
           const response = await fetch(githubDataUrl);
-          
           if (!response.ok) {
             throw new Error(`Erro HTTP! status: ${response.status}`);
           }
@@ -168,21 +166,29 @@
           const scriptText = await response.text();
           console.log("[PASSO 2] Ficheiro de dados do GitHub obtido com sucesso.");
           
-          // Executa o script obtido para definir a variável 'locations'
-          eval(scriptText);
-          
-          if (typeof locations !== 'undefined' && Array.isArray(locations)) {
-              locationsData = locations;
-              console.log(`[PASSO 3] Variável 'locations' encontrada. ${locationsData.length} pontos carregados.`);
-              loadGoogleMapsAPI();
-          } else {
+          try {
+            console.log("[PASSO 2.1] A tentar processar os dados...");
+            eval(scriptText);
+            
+            if (typeof locations !== 'undefined' && Array.isArray(locations)) {
+                locationsData = locations;
+                console.log(`[PASSO 3] Variável 'locations' encontrada e processada. ${locationsData.length} pontos carregados.`);
+                loadGoogleMapsAPI();
+            } else {
+                console.error("[ERRO DE DADOS] A variável 'locations' não foi encontrada ou não é um array.");
+                showLoading(false);
+                showMessage("Erro ao Carregar Dados", "O ficheiro de dados foi carregado, mas a variável 'locations' não foi encontrada ou não é um array. Por favor, verifique a formatação do ficheiro.");
+            }
+          } catch (evalError) {
+              console.error("[ERRO DE DADOS CRÍTICO] Erro de sintaxe ao processar o ficheiro de dados:", evalError);
               showLoading(false);
-              showMessage("Erro ao Carregar Dados", "O ficheiro de dados foi carregado, mas a variável 'locations' não foi encontrada ou não é um array. Por favor, verifique o conteúdo do ficheiro.");
+              showMessage("Erro de Sintaxe", "Ocorreu um erro de sintaxe ao ler o ficheiro de dados. Por favor, verifique se o ficheiro `dados.js` está formatado corretamente.");
           }
-        } catch (error) {
-          console.error("[ERRO DE REDE] Falha ao carregar o ficheiro de dados do GitHub:", error);
+
+        } catch (fetchError) {
+          console.error("[ERRO DE REDE] Falha ao carregar o ficheiro de dados do GitHub:", fetchError);
           showLoading(false);
-          showMessage("Erro de Rede", `Não foi possível carregar o ficheiro de dados do GitHub. Erro: ${error.message}`);
+          showMessage("Erro de Rede", `Não foi possível carregar o ficheiro de dados do GitHub. Erro: ${fetchError.message}`);
         }
       }
 
