@@ -91,7 +91,7 @@
       }
 
       async function initMap() {
-        // Verifica se a chave da API foi substituída
+        // --- IMPORTANTE: SUBSTITUA 'YOUR_API_KEY_HERE' PELA SUA CHAVE DE API REAL ---
         const apiKey = "AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho";
         if (apiKey === "AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho") {
           const errorMessage = "Erro: Chave da API do Google Maps ausente. Por favor, substitua 'YOUR_API_KEY_HERE' pela sua chave real no script.";
@@ -232,4 +232,78 @@
                     commerceMarkerContent.innerHTML = `
                       <div class="relative w-8 h-8 rounded-full bg-yellow-400 border-2 border-yellow-600 flex items-center justify-center shadow-md">
                         <svg class="w-5 h-5 text-yellow-900" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                          <path fill-rule="evenodd" d="M10 2a8 8 0 100 16A8 8 0 0010 2zM8.707 6.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293a1 1 0 000-1.414z" c
+                          <path fill-rule="evenodd" d="M10 2a8 8 0 100 16A8 8 0 0010 2zM8.707 6.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293a1 1 0 000-1.414z" clip-rule="evenodd"></path>
+                        </svg>
+                      </div>
+                    `;
+
+                    commerceMarker = new AdvancedMarkerElement({
+                        map: map,
+                        position: placeLocation,
+                        content: commerceMarkerContent,
+                        title: place.name
+                    });
+
+                    commerceMarker.addListener("click", () => {
+                        infoWindow.setContent(`<h3>Comércio: ${place.name}</h3><p>${place.formatted_address}</p>`);
+                        infoWindow.open(map, commerceMarker);
+                    });
+
+                    map.setCenter(placeLocation);
+                    map.setZoom(12);
+
+                    const nearbyUsers = locations.filter(user => {
+                        const distance = getDistance(
+                            user.latitude, user.longitude,
+                            placeLocation.lat(), placeLocation.lng()
+                        );
+                        return distance <= searchRadius;
+                    });
+
+                    displayMarkers(nearbyUsers);
+                    
+                    if (nearbyUsers.length === 0) {
+                        showMessage(`Nenhum usuário encontrado em um raio de ${searchRadius} km de "${place.name}".`);
+                    } else {
+                        showMessage(`${nearbyUsers.length} usuários encontrados em um raio de ${searchRadius} km de "${place.name}".`);
+                        console.log(`${nearbyUsers.length} usuários encontrados em um raio de ${searchRadius} km de "${place.name}".`);
+                    }
+                } else {
+                    showMessage(`Não foi possível encontrar o comércio "${searchTerm}". Por favor, tente refinar a busca.`);
+                    clearSearch();
+                }
+            });
+        }
+
+        function clearSearch() {
+            searchInput.value = '';
+            if (commerceMarker) {
+                commerceMarker.map = null;
+                commerceMarker = null;
+            }
+            displayMarkers(locations);
+            map.setZoom(5);
+            map.setCenter({ lat: -23.5505, lng: -46.6333 });
+        }
+
+        // Inicializa o mapa exibindo todos os pontos de usuário ao carregar
+        displayMarkers(locations);
+      }
+
+      // Bootstrap da API do Google Maps
+      (g => {
+        var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
+        // --- IMPORTANTE: SUBSTITUA 'YOUR_API_KEY_HERE' PELA SUA CHAVE DE API REAL ---
+        key: "YOUR_API_KEY_HERE",
+        v: "weekly",
+        libraries: ["maps", "marker", "places"],
+      });
+
+      initMap();
+    </script>
+
+    <!-- MarkerClusterer library -->
+    <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
+      
+  </body>
+</html>
