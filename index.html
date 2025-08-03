@@ -116,7 +116,7 @@
       <input type="text" id="search-input" placeholder="Buscar comércio (ex: 'Padaria')">
       <div>
         <label id="radius-label" for="radius-input">Raio de busca (km):</label>
-        <input type="number" id="radius-input" value="30" min="1" max="100">
+        <input type="number" id="radius-input" value="30" min="0" max="100">
       </div>
       <div class="button-group">
         <button id="search-button" class="map-button">Buscar Comércio</button>
@@ -271,36 +271,45 @@
                             title: 'Sua Localização Atual'
                         });
 
-                        // Desenha um círculo para o raio de busca a partir da sua localização
-                        const searchRadius = parseFloat(radiusInput.value) * 1000;
-                        searchCircle = new Circle({
-                            strokeColor: "#FF0000",
-                            strokeOpacity: 0.8,
-                            strokeWeight: 2,
-                            fillColor: "#FF0000",
-                            fillOpacity: 0.35,
-                            map,
-                            center: pos,
-                            radius: searchRadius,
-                        });
+                        const searchRadius = parseFloat(radiusInput.value);
                         
-                        // Filtra os usuários próximos para exibição no console
-                        const nearbyUsers = locations.filter(user => {
-                            const distance = getDistance(
-                                user.latitude, user.longitude,
-                                pos.lat, pos.lng
-                            );
-                            return distance <= parseFloat(radiusInput.value);
-                        });
-                        
-                        map.setCenter(pos);
-                        map.setZoom(12);
-
-                        if (nearbyUsers.length === 0) {
-                            console.log(`Nenhum usuário encontrado em um raio de ${radiusInput.value} km da sua localização.`);
-                            showMessage(`Nenhum usuário encontrado em um raio de ${radiusInput.value} km da sua localização.`);
+                        if (searchRadius > 0) {
+                          // Desenha um círculo para o raio de busca a partir da sua localização
+                          searchCircle = new Circle({
+                              strokeColor: "#FF0000",
+                              strokeOpacity: 0.8,
+                              strokeWeight: 2,
+                              fillColor: "#FF0000",
+                              fillOpacity: 0.35,
+                              map,
+                              center: pos,
+                              radius: searchRadius * 1000,
+                          });
+                          
+                          // Filtra os usuários próximos para exibição no console
+                          const nearbyUsers = locations.filter(user => {
+                              const distance = getDistance(
+                                  user.latitude, user.longitude,
+                                  pos.lat, pos.lng
+                              );
+                              return distance <= searchRadius;
+                          });
+                          
+                          map.setCenter(pos);
+                          map.setZoom(12);
+  
+                          if (nearbyUsers.length === 0) {
+                              console.log(`Nenhum usuário encontrado em um raio de ${searchRadius} km da sua localização.`);
+                              showMessage(`Nenhum usuário encontrado em um raio de ${searchRadius} km da sua localização.`);
+                          } else {
+                              console.log(`${nearbyUsers.length} usuários encontrados em um raio de ${searchRadius} km da sua localização.`);
+                          }
                         } else {
-                            console.log(`${nearbyUsers.length} usuários encontrados em um raio de ${radiusInput.value} km da sua localização.`);
+                          // Raio é 0, considera todos os usuários
+                          map.setCenter(pos);
+                          map.setZoom(12);
+                          console.log(`Raio de busca 0km selecionado. Todos os ${locations.length} usuários cadastrados serão considerados próximos.`);
+                          showMessage(`Raio de busca 0km selecionado. Todos os usuários serão considerados próximos.`);
                         }
                     },
                     (error) => {
