@@ -152,32 +152,38 @@
       }
 
       // Função para carregar os dados do GitHub
-      function loadDataAndInitMap() {
+      async function loadDataAndInitMap() {
         showLoading(true);
         const githubDataUrl = "https://raw.githubusercontent.com/GP857/pinmap-system_gp857/main/dados.js";
         console.log(`[PASSO 1] A tentar carregar dados do URL: ${githubDataUrl}`);
         
-        const script = document.createElement('script');
-        script.src = githubDataUrl;
-        
-        script.onload = () => {
-          console.log("[PASSO 2] Ficheiro dados.js carregado com sucesso.");
+        try {
+          // Usa fetch para obter o conteúdo do ficheiro de dados
+          const response = await fetch(githubDataUrl);
+          
+          if (!response.ok) {
+            throw new Error(`Erro HTTP! status: ${response.status}`);
+          }
+          
+          const scriptText = await response.text();
+          console.log("[PASSO 2] Ficheiro de dados do GitHub obtido com sucesso.");
+          
+          // Executa o script obtido para definir a variável 'locations'
+          eval(scriptText);
+          
           if (typeof locations !== 'undefined' && Array.isArray(locations)) {
               locationsData = locations;
-              console.log(`[PASSO 3] Carregado com sucesso ${locationsData.length} pontos de utilizador.`);
+              console.log(`[PASSO 3] Variável 'locations' encontrada. ${locationsData.length} pontos carregados.`);
               loadGoogleMapsAPI();
           } else {
               showLoading(false);
               showMessage("Erro ao Carregar Dados", "O ficheiro de dados foi carregado, mas a variável 'locations' não foi encontrada ou não é um array. Por favor, verifique o conteúdo do ficheiro.");
           }
-        };
-        
-        script.onerror = () => {
+        } catch (error) {
+          console.error("[ERRO DE REDE] Falha ao carregar o ficheiro de dados do GitHub:", error);
           showLoading(false);
-          showMessage("Erro ao Carregar Dados", `Não foi possível carregar o ficheiro de dados do GitHub. Por favor, verifique o URL e a sua ligação à internet.`);
-        };
-        
-        document.head.appendChild(script);
+          showMessage("Erro de Rede", `Não foi possível carregar o ficheiro de dados do GitHub. Erro: ${error.message}`);
+        }
       }
 
       async function initMap() {
@@ -358,6 +364,12 @@
           const script = document.createElement('script');
           // !!! ATENÇÃO: SUBSTITUA 'SUA_CHAVE_AQUI' PELA SUA CHAVE REAL E VÁLIDA DO GOOGLE MAPS. !!!
           const apiKey = "AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho";
+          if (apiKey === "AIzaSyDE15OWDlj-EMQmtn6xm6J_DsvCf7y__ho" || apiKey === "") {
+              console.error("[ERRO DE API] A chave da API do Google Maps não foi fornecida. Por favor, substitua 'SUA_CHAVE_AQUI' pela sua chave real.");
+              showMessage("Chave de API em Falta", "Por favor, insira a sua chave da API do Google Maps no código para que o mapa possa carregar.");
+              showLoading(false);
+              return;
+          }
           script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&v=weekly&libraries=maps,marker,places,geocoding`;
           script.async = true; 
           script.defer = true;
