@@ -2,19 +2,6 @@
 const locations = [
     
   {
-    "nome": "Aline Tortosa",
-    "cidade": "Campinas",
-    "estado": "SP",
-    "latitude": -22.9421519,
-    "longitude": -47.0230088,
-    "cep": "13045260",
-    "pais": "Brasil",
-    "localizacao": "Campinas, SP, Brasil",
-    "descricao": "Usuário da cidade de Campinas.",
-    "link": "https://www.google.com/maps/search/?api=1&query=-22.9421519,-47.0230088",
-    "icone": "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
-  },
-  {
     "id": 5,
     "nome": "Alexx Amatuzzi",
     "cidade": "Valinhos",
