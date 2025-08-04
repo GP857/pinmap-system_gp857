@@ -6,7 +6,7 @@
     <style>
       html, body {
         height: 100%;
-        margin: 0;
+        margin: 0;z
         padding: 0;
         font-family: Arial, sans-serif;
       }
@@ -116,7 +116,7 @@
       <input type="text" id="search-input" placeholder="Buscar comércio (ex: 'Padaria')">
       <div>
         <label id="radius-label" for="radius-input">Raio de busca (km):</label>
-        <input type="number" id="radius-input" value="30" min="1" max="100">
+        <input type="number" id="radius-input" value="10" min="1" max="100">
       </div>
       <div class="button-group">
         <button id="search-button" class="map-button">Buscar Comércio</button>
@@ -274,10 +274,10 @@
                         // Desenha um círculo para o raio de busca a partir da sua localização
                         const searchRadius = parseFloat(radiusInput.value) * 1000;
                         searchCircle = new Circle({
-                            strokeColor: "#CC0000",
+                            strokeColor: "#D3D3D3",
                             strokeOpacity: 0.8,
                             strokeWeight: 2,
-                            fillColor: "#CC0000",
+                            fillColor: "#D3D3D3",
                             fillOpacity: 0.35,
                             map,
                             center: pos,
